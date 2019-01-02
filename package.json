@@ -6,7 +6,7 @@
   "scripts": {
     "start": "ts-node --inspect=5858 src/server/main.ts",
     "dev": "parallelshell \"node ./node_modules/nodemon/bin/nodemon.js\" \"webpack-dev-server\"",
-    "netlify": "webpack; cp dist/main.js www"
+    "netlify": "npx webpack"
   },
   "author": "",
   "license": "MIT",
