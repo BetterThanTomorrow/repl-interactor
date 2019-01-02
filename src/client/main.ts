@@ -644,6 +644,5 @@ document.addEventListener("copy", e => {
 
 document.addEventListener("paste", e => {
     replMain.insertString(e.clipboardData.getData("text/plain"));
-    console.log("Pasted "+e.clipboardData.getData("text/plain"));
     e.preventDefault();
 })

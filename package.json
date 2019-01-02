@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node --inspect=5858 src/server/main.ts",
-    "dev": "concurrently \"node ./node_modules/nodemon/bin/nodemon.js\" \"webpack-dev-server\"",
+    "dev": "concurrently \"node ./node_modules/nodemon/bin/nodemon.js\" \"npx webpack-dev-server\"",
     "netlify": "npx webpack"
   },
   "author": "",
@@ -22,7 +22,9 @@
     "style-loader": "^0.23.1",
     "ts-loader": "^5.3.2",
     "typescript": "^3.2.2",
-    "webpack": "^4.28.3"
+    "webpack": "^4.28.3",
+    "webpack-cli": "^3.1.2",
+    "webpack-dev-server": "^3.1.14"
   },
   "dependencies": {
     "compression": "^1.7.3",
