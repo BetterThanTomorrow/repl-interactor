@@ -12,7 +12,7 @@ You can think of a *presentation stream* as a stream much like stdout/stdin, but
 
 ## Purpose
 
-Calva doesn't currently support a dedicated REPL display, but uses the builtin VSCode terminal. With exciting new features in Clojure 1.10, such as `datafy` and `nav`, it is now possible to build rich inspectors in Clojure
+[Calva](https://github.com/BetterThanTomorrow/calva) doesn't currently support a dedicated REPL display, but uses the builtin VSCode terminal. With exciting new features in Clojure 1.10, such as `datafy` and `nav`, it is now possible to build rich inspectors in Clojure
 in the vein of [CLIM](http://web.archive.org/web/20120707045546/http://www.mikemac.com:80/mikemac/clim/cover.html).
 
 Sadly, VSCode's editor does not support rich HTML embedded in a `vscode.TextDocument`, but the abilty to display interactive graphs, tables, etc. at the REPL is too tempting to pass by.  Fortunately VSCode *does* support `WebView`, which allows us to have an embedded html view.
@@ -42,3 +42,5 @@ clone this repository, and from within the directory:
 `$ npm run dev`
 
 Now point your browser at `http://localhost:8080` and type away. The REPL is not yet connected, it is effectively a dumb terminal with syntax highlighting for now.
+
+Copyright (C) 2019 Matt Seddon / BetterThanTomorrow
