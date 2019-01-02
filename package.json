@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node --inspect=5858 src/server/main.ts",
-    "dev": "parallelshell \"node ./node_modules/nodemon/bin/nodemon.js\" \"webpack-dev-server\"",
+    "dev": "concurrently \"node ./node_modules/nodemon/bin/nodemon.js\" \"webpack-dev-server\"",
     "netlify": "npx webpack"
   },
   "author": "",
@@ -14,10 +14,9 @@
     "@types/compression": "0.0.36",
     "@types/express": "^4.16.0",
     "closure-webpack-plugin": "^2.0.0-rc.15",
+    "concurrently": "^4.1.0",
     "css-loader": "^2.1.0",
-    "google-closure-compiler": "^20181209.0.0-webpack-beta",
     "nodemon": "^1.18.9",
-    "parallelshell": "^3.0.2",
     "raw-loader": "^1.0.0",
     "sass-loader": "^7.1.0",
     "style-loader": "^0.23.1",

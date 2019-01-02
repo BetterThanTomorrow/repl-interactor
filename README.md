@@ -6,6 +6,10 @@ This repo contains a prototype HTML5 REPL control, currently supporting syntax h
 
 Ultimately it is intended to be a general presentation stream REPL interactor, in the vein of CLIM, Symbolics Open Genera and the earlier MIT CONS and CADR, with a modern twist. It is not directly tied to any language, so eventually it should be portable to any language you fancy, including ECMAScript.
 
+## Demo
+
+You can see a demo of what I have so far [here](https://repl-interactor.netlify.com/).
+
 ## Presentation What?
 
 You can think of a *presentation stream* as a stream much like stdout/stdin, but supporting rich user interface controls. Not only can you push text through it, you can push *any* data through it, and custom controls that react to that data are created inline to display and edit it.  If you have ever used `Mathematica` or `Gorilla REPL`, you have an idea how this works.
