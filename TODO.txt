@@ -1,0 +1,13 @@
+*Smart update the selection-
+*    do not change any lines that don't need to be.
+*mouse selection
+*Delete range on insert.
+*clipboard handler
+*insertString cursor positioning on paste is wrong
+undo <<<
+-----------------------------------------
+proper re-startable lexer again...
+
+match-parens
+
+auto-indent

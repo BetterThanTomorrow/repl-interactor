@@ -1,0 +1,87 @@
+<html>
+    <head>
+        <style>
+            body {
+                background-color: #222;
+                color: #fff;
+            }
+            
+            #repl {
+                font-family: Consolas, "Courier New", monospace;
+                font-weight: normal;
+                font-size: 12px;
+                letter-spacing: 0;
+                cursor: text;
+                position: relative;
+            }
+
+            .caret {
+                position: absolute;
+                height: 14px;
+                top: 0px;
+                background-color: #fff;
+                animation: 500ms ease-in-out caret-blink infinite;
+            }
+
+            .sel-marker {
+                background-color: #264f78;                
+                position: absolute;
+                z-index: -1;
+                top: 0;
+                height: 100%;
+            }
+
+            .line {
+                position: relative;
+                margin: 0;
+                padding: 0;
+                white-space: pre;
+            }
+            
+            .id {
+                color: #d4d4d4;
+            }
+            
+            .kw {
+                color: #9cdcfe;
+            }
+
+            .comment {
+                color: #6a9955;
+            }
+
+            .lit {
+                color: #b5cea8;
+            }
+
+            .str {
+                color: #ce9178;
+            }
+
+            .decl {
+                color: #c586c0;
+            }
+
+            .macro {
+                color: #569cd6;
+            }
+
+            @keyframes caret-blink {
+                0% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0;
+                }
+                100% {
+                    opacity: 1;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div id="repl">
+        </div>
+    </body>
+    <script src="main.js"></script>
+</html>
