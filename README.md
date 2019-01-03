@@ -56,8 +56,8 @@ languages.
 - [x] Selection
 - [x] Clipboard support
 - [x] Undo / Redo
-- [ ] Paren matching
-- [ ] Auto-indent clojure code
+- [x] Paren matching
+- [x] Auto-indent clojure code
 - [ ] Paredit
 - [ ] Presentation layer
 
