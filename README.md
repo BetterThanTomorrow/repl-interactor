@@ -43,16 +43,16 @@ Currently what we have is a simple console control, but by layering atop this, m
 
 ## Status
 
-[x] Insert / Delete text
-[x] Keyboard navigation
-[x] Mouse navigation
-[x] Selection
-[x] Clipboard support
-[ ] Undo / Redo
-[ ] Paren matching
-[ ] Auto-indent clojure code
-[ ] Paredit
-[ ] Presentation layer
+- [x] Insert / Delete text
+- [x] Keyboard navigation
+- [x] Mouse navigation
+- [x] Selection
+- [x] Clipboard support
+- [ ] Undo / Redo
+- [ ] Paren matching
+- [ ] Auto-indent clojure code
+- [ ] Paredit
+- [ ] Presentation layer
 
 ## Trying it out
 
