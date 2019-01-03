@@ -11,7 +11,7 @@ toplevel.terminal("[\\s,]+", (l, m) => ({ type: "ws" }))
 // comments
 toplevel.terminal(";.*", (l, m) => ({ type: "comment" }))
 // open parens
-toplevel.terminal("\\(|\\[|\\{|#\\(|#?\\(|#\\{|#?@\\(", (l, m) => ({ type: "open" }))
+toplevel.terminal("\\(|\\[|\\{|#\\(|#\\?\\(|#\\{|#\\?@\\(", (l, m) => ({ type: "open" }))
 // close parens
 toplevel.terminal("\\)|\\]|\\}", (l, m) => ({ type: "close" }))
 
