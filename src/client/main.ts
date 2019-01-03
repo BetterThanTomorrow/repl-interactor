@@ -1,32 +1,5 @@
-import { LexicalGrammar, Token } from "./lexer"
 import { debug } from "util";
-
-let toplevel = new LexicalGrammar()
-
-
-// whitespace
-toplevel.terminal("[\\s,]+", (l, m) => ({ type: "ws" }))
-// comments
-toplevel.terminal(";.*", (l, m) => ({ type: "comment" }))
-// open parens
-toplevel.terminal("\\(|\\[|\\{|#\\(|#?\\(|#\\{|#?@\\(", (l, m) => ({ type: "open" }))
-// close parens
-toplevel.terminal("\\)|\\]|\\}", (l, m) => ({ type: "close" }))
-
-// punctuators
-toplevel.terminal("~@|~|'|#'|#:|#_|\\^|`|#|\\^:", (l, m) => ({ type: "punc" }))
-
-toplevel.terminal("true|false|nil", (l, m) => ({type: "lit"}))
-toplevel.terminal("[0-9]+[rR][0-9a-zA-Z]+", (l, m) => ({ type: "lit" }))
-toplevel.terminal("[-+]?[0-9]+(\\.[0-9]+)?([eE][-+]?[0-9]+)?", (l, m) => ({ type: "lit" }))
-
-toplevel.terminal(":[^()[\\]\\{\\}#,~@'`^\"\\s;]*", (l, m) => ({ type: "kw" }))
-// this is a REALLY lose symbol definition, but similar to how clojure really collects it. numbers/true/nil are all 
-toplevel.terminal("[^()[\\]\\{\\}#,~@'`^\"\\s:;][^()[\\]\\{\\}#,~@'`^\"\\s;]*", (l, m) => ({ type: "id" }))
-// complete string on a single line
-toplevel.terminal('"([^"\\\\]|\\\\.)*"?', (l, m) => ({ type: "str"}))
-
-toplevel.terminal('.', (l, m) => ({ type: "junk" }))
+import { Scanner, Token, ScannerState } from "./clojure-lexer";
 
 const canvas = document.createElement("canvas");
 let ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
@@ -36,6 +9,8 @@ function measureText(str: string) {
 }
 
 let macros = new Set(["if", "let", "do", "while", "cond", "case"]);
+
+const scanner = new Scanner();
 
 function makeToken(tk: Token) {
     let span = document.createElement("span");
@@ -54,7 +29,18 @@ function makeToken(tk: Token) {
 
 class ReplLine {
     tokens: Token[] = [];
-    constructor(public text: string) {
+    text: string;
+    endState: ScannerState;
+    constructor(text: string, public startState: ScannerState) {
+        this.text = text;
+        this.tokens = scanner.processLine(text)
+        this.endState = {...scanner.state};
+    }
+
+    processLine(oldState: any) {
+        this.startState = { ...oldState}
+        this.tokens = scanner.processLine(this.text, oldState)
+        this.endState = {...scanner.state};
     }
 }
 
@@ -152,14 +138,71 @@ class EditorDeleteUndoStep extends EditorUndoStep {
     }
 }
 
+function equal(x: any, y: any): boolean {
+    if(x==y) return true;
+    if(x instanceof Array && y instanceof Array) {
+        if(x.length == y.length) {
+            for(let i = 0; i<x.length; i++)
+                if(!equal(x[i], y[i]))
+                    return false;
+            return true;
+        } else
+            return false;
+    } else if (!(x instanceof Array) && !(y instanceof Array) && x instanceof Object && y instanceof Object) {
+        for(let f in x)
+            if(!equal(x[f], y[f]))
+                return false;
+        for(let f in y)
+            if(!x.hasOwnProperty(f))
+                return false
+        return true;
+    }
+    return false;
+}
+
 class LineInputModel {
-    lines: ReplLine[] = [new ReplLine("")];
+    lines: ReplLine[] = [new ReplLine("", this.getStateForLine(0))];
     changedLines: Set<number> = new Set();
     insertedLines: Set<[number, number]> = new Set();
     deletedLines: Set<[number, number]> = new Set();
     undoManager = new UndoManager();
 
     recordingUndo: boolean = false;
+    dirtyLines: number[] = [];
+
+    private markDirty(idx: number) {
+        if(idx >= 0 && idx < this.lines.length && this.dirtyLines.indexOf(idx) == -1)
+            this.dirtyLines.push(idx);
+    }
+
+    private removeDirty(start: number, end: number, inserted: number) {
+        let delta = end-start + inserted;
+        this.dirtyLines = this.dirtyLines.filter(x => x < start || x > end)
+                                          .map(x => x > start ? x - delta : x);
+    }
+    
+
+    flushChanges() {
+        if(!this.dirtyLines.length)
+            return;
+        let seen = new Set<number>();
+        this.dirtyLines.sort();
+        while(this.dirtyLines.length) {
+            let nextIdx = this.dirtyLines.shift();
+            if(seen.has(nextIdx))
+                continue; // already processed.
+            seen.add(nextIdx);
+            let prevState = this.getStateForLine(nextIdx);
+            do {
+                seen.add(nextIdx);
+                this.changedLines.add(nextIdx);
+                this.lines[nextIdx].processLine(prevState);
+                prevState = this.lines[nextIdx].endState;
+                
+            } while(this.lines[++nextIdx] && !(equal(this.lines[nextIdx].startState, prevState)))
+        }
+    }
+
 
     getOffsetForLine(line: number) {
         let max = 0;
@@ -194,21 +237,27 @@ class LineInputModel {
         return [this.lines.length-1, this.lines[this.lines.length-1].text.length]
     }
 
+    private getStateForLine(line: number): ScannerState {
+        return line == 0 ? { inString: false, } : { ... this.lines[line-1].endState };
+    }
+
     insertString(offset: number, text: string, oldCursor?: [number, number], newCursor?: [number, number]): number {
         let [row, col] = this.getRowCol(offset);
         let lines = text.split(/\r\n|\n/);
         let count = 0;
         if(lines.length == 1) {
             this.lines[row].text = this.lines[row].text.substring(0, col) + text + this.lines[row].text.substring(col);
+            this.markDirty(row);
             count += text.length;
         } else {
             let rhs = this.lines[row].text.substring(col);
             this.lines[row].text = this.lines[row].text.substring(0, col) + lines[0];
+            this.markDirty(row);
             let newItems = [];
             for(let i=1; i<lines.length-1; i++) {
-                newItems.push(new ReplLine(lines[i]));
+                newItems.push(new ReplLine(lines[i], this.getStateForLine(row+i)));
             }
-            newItems.push(new ReplLine(lines[lines.length-1]+rhs));
+            newItems.push(new ReplLine(lines[lines.length-1]+rhs, this.getStateForLine(lines.length-1)));
             for(let i=0; i<lines.length; i++)
                 count+=lines[i].length+1;
             this.insertedLines.add([row, lines.length-1]);
@@ -220,14 +269,18 @@ class LineInputModel {
 
         if(this.recordingUndo)
             this.undoManager.addUndoStep(new EditorInsertUndoStep("Insert", offset, text, oldCursor, [oldCursor[1]+offset, oldCursor[1]+offset]))
+
         return count;
     }
 
     deleteRange(offset: number, length: number, oldCursor?: [number, number], newCursor?: [number, number]) {
+        this.removeDirty(this.getRowCol(offset)[0], this.getRowCol(offset+length)[0], 0);
+
         let [row, col] = length > 0 ? this.getRowCol(offset) : this.getRowCol(offset+length);
         let [endRow, endCol] = length > 0 ? this.getRowCol(offset+length) : this.getRowCol(offset);
 
         let deleted = this.getText(offset, offset+length)
+        this.markDirty(row);
 
         if(endRow != row) {
             let left = this.lines[row].text.substring(0, col);
@@ -492,6 +545,7 @@ class ReplConsole {
     }
 
     updateState() {
+        this.model.flushChanges()
         // insert any new lines
         for(let [start, count] of this.model.insertedLines) {
             for(let j=0; j<count; j++) {
@@ -519,9 +573,7 @@ class ReplConsole {
             let ln = this.inputLines[line].querySelector(".content");
             while(ln.firstChild)
                 ln.removeChild(ln.firstChild);
-            let lex = toplevel.lex(this.model.lines[line].text);
-            for(;;) {
-                let tk = lex.scan();
+            for(let tk of this.model.lines[line].tokens) {
                 if(!tk)
                     break;
                 ln.appendChild(makeToken(tk));

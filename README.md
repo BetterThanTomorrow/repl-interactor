@@ -28,9 +28,16 @@ This support can be handled via a REPL client (eventually, this) and a custom pr
 
 Sadly, VSCode's editor does not support rich HTML embedded in a `vscode.TextDocument`, but the abilty to display interactive graphs, tables, etc. at the REPL is too tempting to pass by.  Fortunately VSCode *does* support `WebView`, which allows us to have an embedded html view, we need to re-build a syntax highlighting editor, undo/redo support etc from the ground up, which is just a [small matter of programming](http://www.catb.org/jargon/html/S/SMOP.html).
 
-Thus, this project was born. It is still rather an experiment- since we are an isolated web page within vscode,
+## Caveat
 
-Currently what we have is a simple console control, but by layering atop this, more shininess can be added.
+This is still rather an experiment- since we are an isolated web page within vscode, we don't have access to other extension behaviour. Perhaps long term this will make the project unviable, but for now, it's worth experimenting.
+
+Currently I am still fleshing out the low-level details, it's basically a syntax highlighting readline with all the trimmings you'd expect from modern software (undo management, clipboard, selection, etc)s.
+
+## Why TypeScript?
+
+This project is intended for use first off for Calva, however the goal is to generally be useful for anyone. Using typescript keeps the bundle size down, and makes the code generally more accessible for those wanting to add a REPL to their favorite
+languages.
 
 ## Goals
 

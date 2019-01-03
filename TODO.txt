@@ -9,7 +9,7 @@
     *bind undo directly to insertString and deleteString inside the model,
     *coalesce undos   
 -----------------------------------------
-proper re-startable lexer again...
+*proper re-startable lexer again...
 
 match-parens
 
