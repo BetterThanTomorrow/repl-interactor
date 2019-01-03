@@ -5,6 +5,9 @@
 *clipboard handler
 *insertString cursor positioning on paste is wrong
 undo <<<
+    the model holds the undoManager.
+    bind undo directly to insertString and deleteString inside the model,
+    
 -----------------------------------------
 proper re-startable lexer again...
 
