@@ -119,6 +119,7 @@ class EditorDeleteUndoStep extends EditorUndoStep {
 
             // repeated backspace key
             if(this.offset - this.deletedText.length == step.offset) {
+                this.offset = step.offset;
                 this.deletedText = step.deletedText + this.deletedText;
                 this.newSelection = step.newSelection;
                 return true;
