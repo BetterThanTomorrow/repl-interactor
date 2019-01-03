@@ -1,5 +1,5 @@
 import { Token } from "./clojure-lexer";
-import { ReplConsole } from "./console";
+import { ReplConsole, getIndent } from "./console";
 
 const isMac = navigator.platform.match(/Mac(Intel|PPC|68k)/i); // somewhat optimistic this would run on MacOS8 but hey ;)
 
@@ -34,7 +34,11 @@ window.addEventListener("keydown", e => {
                 break;
             case 13:
                 replMain.model.undoManager.insertUndoStop();
-                replMain.insertString("\n");
+                let indent = getIndent(replMain, replMain.model.getRowCol(replMain.cursorEnd));
+                let istr = ""
+                for(let i=0; i<indent; i++)
+                    istr += " "
+                replMain.insertString("\n"+istr);
                 break;
             case 37: // Left arrow
                 replMain.caretLeft(!e.shiftKey);

@@ -19,7 +19,7 @@ export class TokenCursor {
 
     /** Return the position */
     get rowCol() {
-        return [this.getToken().offset, this.line];
+        return [this.line, this.getToken().offset];
     }
 
     /** True if we are at the start of the document */

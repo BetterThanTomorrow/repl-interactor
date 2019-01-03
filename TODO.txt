@@ -11,6 +11,6 @@
 -----------------------------------------
 *proper re-startable lexer again...
 
-match-parens
+*match-parens
 
-auto-indent
+*auto-indent
