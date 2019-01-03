@@ -48,7 +48,7 @@ Currently what we have is a simple console control, but by layering atop this, m
 - [x] Mouse navigation
 - [x] Selection
 - [x] Clipboard support
-- [ ] Undo / Redo
+- [x] Undo / Redo
 - [ ] Paren matching
 - [ ] Auto-indent clojure code
 - [ ] Paredit

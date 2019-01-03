@@ -1,4 +1,5 @@
 import { LexicalGrammar, Token } from "./lexer"
+import { debug } from "util";
 
 let toplevel = new LexicalGrammar()
 
@@ -59,28 +60,48 @@ class ReplLine {
 
 abstract class UndoStep {
     name: string;
+    undoStop: boolean;
     abstract undo(c: ReplConsole): void;
     abstract redo(c: ReplConsole): void;
+
+    coalesce(c: UndoStep): boolean {
+        return false;
+    }
 }
 
 class EditorUndoStep extends UndoStep {
-    constructor(public name: string, public selectionStart: [number, number], public selectionEnd: [number, number]) {
+    constructor(public name: string, public oldSelection?: [number, number], public newSelection?: [number, number]) {
         super();
     }
 
     undo(c: ReplConsole) {
-        [c.cursorStart, c.cursorEnd] = this.selectionStart;
+        if(this.oldSelection)
+            [c.cursorStart, c.cursorEnd] = this.oldSelection;
         // delete the insertedText
     }
 
     redo(c: ReplConsole) {
-        [c.cursorStart, c.cursorEnd] = this.selectionEnd;
+        if(this.newSelection)
+            [c.cursorStart, c.cursorEnd] = this.newSelection;
     }
 }
 
 class EditorInsertUndoStep extends EditorUndoStep {
-    constructor(name: string, selectionStart: [number, number], selectionEnd: [number, number], public offset: number, public insertedText: string) {
-        super(name, selectionStart, selectionEnd);
+    constructor(name: string, public offset: number, public insertedText: string, oldSelection?: [number, number], newSelection?: [number, number]) {
+        super(name);
+        this.oldSelection = oldSelection;
+        this.newSelection = newSelection;
+    }
+
+    coalesce(step: UndoStep) {
+        if(step instanceof EditorInsertUndoStep) {
+            if(this.offset + this.insertedText.length == step.offset) {
+                this.insertedText += step.insertedText;
+                this.newSelection = step.newSelection;
+                return true;
+            }
+        }
+        return false;
     }
 
     undo(c: ReplConsole) {
@@ -95,8 +116,29 @@ class EditorInsertUndoStep extends EditorUndoStep {
 }
 
 class EditorDeleteUndoStep extends EditorUndoStep {
-    constructor(name: string, selectionStart: [number, number], selectionEnd: [number, number], public offset: number, public deletedText: string) {
-        super(name, selectionStart, selectionEnd);
+    constructor(name: string, public offset: number, public deletedText: string, oldSelection?: [number, number], newSelection?: [number, number]) {
+        super(name);
+        this.oldSelection = oldSelection;
+        this.newSelection = newSelection;
+    }
+
+    coalesce(step: UndoStep) {
+        if(step instanceof EditorDeleteUndoStep) {
+            // repeated delete key
+            if(this.offset == step.offset) {
+                this.deletedText += step.deletedText;
+                this.newSelection = step.newSelection;
+                return true;
+            }
+
+            // repeated backspace key
+            if(this.offset - this.deletedText.length == step.offset) {
+                this.deletedText = step.deletedText + this.deletedText;
+                this.newSelection = step.newSelection;
+                return true;
+            }
+        }
+        return false;
     }
 
     undo(c: ReplConsole) {
@@ -115,6 +157,9 @@ class LineInputModel {
     changedLines: Set<number> = new Set();
     insertedLines: Set<[number, number]> = new Set();
     deletedLines: Set<[number, number]> = new Set();
+    undoManager = new UndoManager();
+
+    recordingUndo: boolean = false;
 
     getOffsetForLine(line: number) {
         let max = 0;
@@ -128,10 +173,14 @@ class LineInputModel {
         let en = this.getRowCol(Math.max(start, end));
 
         let lines = [];
-        lines[0] = this.lines[st[0]].text.substr(Math.min(start, end)-this.getOffsetForLine(st[0]))
+        if(st[0] == en[0])
+            lines[0] = this.lines[st[0]].text.substring(Math.min(st[1], en[1]), Math.max(st[1], en[1]))
+        else
+            lines[0] = this.lines[st[0]].text.substring(Math.min(st[1], en[1]))
         for(let i=st[0]+1; i<en[0]; i++)
             lines.push(this.lines[i].text);
-        lines.push(this.lines[en[0]].text.substr(0, Math.max(start, end)-this.getOffsetForLine(en[0])));
+        if(st[0] != en[0])
+            lines.push(this.lines[en[0]].text.substring(0, Math.max(st[1], en[1])));
         return lines.join('\n');
     }
 
@@ -145,7 +194,7 @@ class LineInputModel {
         return [this.lines.length-1, this.lines[this.lines.length-1].text.length]
     }
 
-    insertString(offset: number, text: string): number {
+    insertString(offset: number, text: string, oldCursor?: [number, number], newCursor?: [number, number]): number {
         let [row, col] = this.getRowCol(offset);
         let lines = text.split(/\r\n|\n/);
         let count = 0;
@@ -168,12 +217,17 @@ class LineInputModel {
         }
         for(let i=0; i<lines.length; i++)
             this.changedLines.add(row+i);
+
+        if(this.recordingUndo)
+            this.undoManager.addUndoStep(new EditorInsertUndoStep("Insert", offset, text, oldCursor, [oldCursor[1]+offset, oldCursor[1]+offset]))
         return count;
     }
 
-    deleteRange(offset: number, length: number) {
+    deleteRange(offset: number, length: number, oldCursor?: [number, number], newCursor?: [number, number]) {
         let [row, col] = length > 0 ? this.getRowCol(offset) : this.getRowCol(offset+length);
         let [endRow, endCol] = length > 0 ? this.getRowCol(offset+length) : this.getRowCol(offset);
+
+        let deleted = this.getText(offset, offset+length)
 
         if(endRow != row) {
             let left = this.lines[row].text.substring(0, col);
@@ -186,6 +240,8 @@ class LineInputModel {
             this.lines[row].text = this.lines[row].text.substring(0, col) + this.lines[row].text.substring(col+length);
             this.changedLines.add(row);
         }
+        if(this.recordingUndo)
+            this.undoManager.addUndoStep(new EditorDeleteUndoStep("Delete", offset, deleted, oldCursor, newCursor))
     }
 
     get maxOffset() {
@@ -201,8 +257,23 @@ class UndoManager {
     private redos: UndoStep[] = [];
 
     addUndoStep(step: UndoStep) {
-        this.undos.push(step);
+        if(this.undos.length) {
+            let prevUndo = this.undos[this.undos.length-1];
+            if(prevUndo.undoStop) {
+                this.undos.push(step);
+            } else if(!prevUndo.coalesce(step)) {
+                this.undos.push(step);
+            }
+        } else {
+            this.undos.push(step);
+        }
         this.redos = [];
+    }
+
+    /** Prevents this undo from becoming coalesced with future undos */
+    insertUndoStop() {
+        if(this.undos.length)
+            this.undos[this.undos.length-1].undoStop = true;
     }
 
     undo(c: ReplConsole) {
@@ -224,7 +295,6 @@ class UndoManager {
 
 class ReplConsole {
     private _cursorStart: number = 0;
-    undoManager = new UndoManager();
 
     get cursorStart() {
         return this._cursorStart
@@ -259,17 +329,29 @@ class ReplConsole {
     /** The target column of the caret, for up/down movement. */
     caretX: number = 0;
 
-    insertString(text: string) {
-        if(this.cursorStart != this.cursorEnd) {
-            this.deleteSelection();
+    withUndo(f: () => void) {
+        let oldUndo = this.model.recordingUndo;
+        try {
+            this.model.recordingUndo = true;
+            f();
+        } finally {
+            this.model.recordingUndo = oldUndo;
         }
-        let [cs, ce] = [this.cursorStart, this.cursorEnd]
-        let offset = this.cursorStart = this.cursorEnd;
-        this.cursorEnd += this.model.insertString(this.cursorEnd, text);
-        this.cursorStart = this.cursorEnd;
-        this.undoManager.addUndoStep(new EditorInsertUndoStep("Insert", [cs, ce], [this.cursorStart, this.cursorEnd], offset, text))
-        this.updateState();
-        this.caretX = this.model.getRowCol(this.cursorEnd)[1];
+    }
+
+    insertString(text: string) {
+        this.withUndo(() => {
+            if(this.cursorStart != this.cursorEnd) {
+                this.deleteSelection();
+            }
+            let [cs, ce] = [this.cursorStart, this.cursorEnd]
+            this.cursorEnd += this.model.insertString(this.cursorEnd, text, [cs, ce]);
+            this.cursorStart = this.cursorEnd;
+
+            this.updateState();
+            
+            this.caretX = this.model.getRowCol(this.cursorEnd)[1];
+        });
     }
 
     caretLeft(clear: boolean = true) {
@@ -363,35 +445,41 @@ class ReplConsole {
     }
     
     private deleteSelection() {
-        if(this.cursorStart != this.cursorEnd) {
-            this.model.deleteRange(Math.min(this.cursorStart, this.cursorEnd), Math.max(this.cursorStart, this.cursorEnd)-Math.min(this.cursorStart, this.cursorEnd));
-            this.cursorStart = this.cursorEnd = Math.min(this.cursorStart, this.cursorEnd);
-        }
+        this.withUndo(() => {
+            if(this.cursorStart != this.cursorEnd) {
+                this.model.deleteRange(Math.min(this.cursorStart, this.cursorEnd), Math.max(this.cursorStart, this.cursorEnd)-Math.min(this.cursorStart, this.cursorEnd));
+                this.cursorStart = this.cursorEnd = Math.min(this.cursorStart, this.cursorEnd);
+            }
+        })
     }
 
     backspace() {
-        if(this.cursorStart != this.cursorEnd) {
-            this.deleteSelection();
-        } else {
-            if(this.cursorEnd > 0) {
-                this.model.deleteRange(this.cursorEnd-1, 1);
-                this.cursorEnd--;
+        this.withUndo(() => {
+            if(this.cursorStart != this.cursorEnd) {
+                this.deleteSelection();
+            } else {
+                if(this.cursorEnd > 0) {
+                    this.model.deleteRange(this.cursorEnd-1, 1, [this.cursorStart, this.cursorEnd], [this.cursorEnd-1, this.cursorEnd-1]);
+                    this.cursorEnd--;
+                }
+                this.cursorStart = this.cursorEnd;
             }
-            this.cursorStart = this.cursorEnd;
-        }
-        this.updateState()
-        this.caretX = this.model.getRowCol(this.cursorEnd)[1];
+            this.updateState()
+            this.caretX = this.model.getRowCol(this.cursorEnd)[1];
+        });
     }
 
     delete() {
-        if(this.cursorStart != this.cursorEnd) {
-            this.deleteSelection();
-        } else {
-            this.model.deleteRange(this.cursorEnd, 1);
-            this.cursorStart = this.cursorEnd;
-        }
-        this.caretX = this.model.getRowCol(this.cursorEnd)[1];
-        this.updateState()
+        this.withUndo(() => {
+            if(this.cursorStart != this.cursorEnd) {
+                this.deleteSelection();
+            } else {
+                this.model.deleteRange(this.cursorEnd, 1);
+                this.cursorStart = this.cursorEnd;
+            }
+            this.caretX = this.model.getRowCol(this.cursorEnd)[1];
+            this.updateState()
+        });
     }
 
     private makeSelection(start: number, width: number) {
@@ -567,10 +655,16 @@ class ReplConsole {
     }
 }
 
+const isMac = navigator.platform.match(/Mac(Intel|PPC|68k)/i); // somewhat optimistic this would run on MacOS8 but hey ;)
+
 window.addEventListener("keydown", e => {
-    if(e.key.length == 1 && !e.ctrlKey) {
+    let commandKey = isMac ? e.metaKey : e.ctrlKey;
+
+    if(e.key.length == 1 && !e.metaKey && !e.ctrlKey) {
+        if(e.key == " ")
+            replMain.model.undoManager.insertUndoStop();    
         replMain.insertString(e.key);
-    } else if(e.key.length == 1) {
+    } else if(e.key.length == 1 && commandKey) {
         switch(e.key) {
             case "a":
                 replMain.cursorStart = 0;
@@ -579,11 +673,11 @@ window.addEventListener("keydown", e => {
                 e.preventDefault();
                 break;
             case 'z':
-                replMain.undoManager.undo(replMain);
+                replMain.model.undoManager.undo(replMain);
                 replMain.updateState()
                 break;
             case 'Z':
-                replMain.undoManager.redo(replMain);
+                replMain.model.undoManager.redo(replMain);
                 replMain.updateState()
                 break;
         }
@@ -593,6 +687,7 @@ window.addEventListener("keydown", e => {
                 e.preventDefault();
                 break;
             case 13:
+                replMain.model.undoManager.insertUndoStop();
                 replMain.insertString("\n");
                 break;
             case 37: // Left arrow
