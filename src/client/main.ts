@@ -255,9 +255,9 @@ class LineInputModel {
             this.markDirty(row);
             let newItems = [];
             for(let i=1; i<lines.length-1; i++) {
-                newItems.push(new ReplLine(lines[i], this.getStateForLine(row+i)));
+                newItems.push(new ReplLine(lines[i], this.getStateForLine(0)));
             }
-            newItems.push(new ReplLine(lines[lines.length-1]+rhs, this.getStateForLine(lines.length-1)));
+            newItems.push(new ReplLine(lines[lines.length-1]+rhs, this.getStateForLine(0)));
             for(let i=0; i<lines.length; i++)
                 count+=lines[i].length+1;
             this.insertedLines.add([row, lines.length-1]);
