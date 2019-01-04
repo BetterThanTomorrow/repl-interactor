@@ -43,30 +43,37 @@ window.addEventListener("keydown", e => {
                 break;
             case 37: // Left arrow
                 replMain.caretLeft(!e.shiftKey);
+                e.preventDefault();
                 break;
             case 39: // Right arrow
                 replMain.caretRight(!e.shiftKey);
+                e.preventDefault();
                 break;
             case 8: // Backspace
                 replMain.backspace();
+                e.preventDefault();
                 break;
             case 36: // Home
                 if(e.ctrlKey)
                     replMain.caretHomeAll(!e.shiftKey);
                 else
                     replMain.caretHome(!e.shiftKey);
-                break;
+                    e.preventDefault();
+                    break;
             case 35: // End
                 if(e.ctrlKey)
                     replMain.caretEndAll(!e.shiftKey)
                 else
                     replMain.caretEnd(!e.shiftKey);
-                break;
+                    e.preventDefault();
+                    break;
             case 38: // Up
                 replMain.caretUp(!e.shiftKey);
+                e.preventDefault();
                 break;
             case 40: // Down
                 replMain.caretDown(!e.shiftKey);
+                e.preventDefault();
                 break;
             case 46: // Delete
                 replMain.delete();
