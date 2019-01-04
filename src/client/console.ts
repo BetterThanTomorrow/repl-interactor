@@ -576,6 +576,7 @@ let OPEN_LIST = new Set(["#(", "#?(", "(", "#?@("])
 
 export function collectIndentState(document: ReplConsole, position: [number, number], maxDepth: number = 3, maxLines: number = 20): IndentState[] {
     let cursor = document.getTokenCursor(position);
+    cursor.backwardWhitespace();
     let argPos = 0;
     let startLine = cursor.line;
     let exprsOnLine = 0;
@@ -614,7 +615,7 @@ export function collectIndentState(document: ReplConsole, position: [number, num
             exprsOnLine = 0;
             lastLine = cursor.line;
         }
-        
+
         if(whitespace.has(cursor.getPrevToken().type)) {
             argPos++;
             exprsOnLine++;

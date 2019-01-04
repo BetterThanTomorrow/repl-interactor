@@ -16,9 +16,9 @@
 *auto-indent
 
 -----------------------------------------
-fix stupid indent issues <<<
+*fix stupid indent issues
 
-Code cleanup/tidy/document day
+Code cleanup/tidy/document day <<
    Work out calva-fmt vs our differences, something is... up.
 -----------------------------------------
 paredit (prepare for backporting to calva)

@@ -71,7 +71,7 @@ window.addEventListener("keydown", e => {
                 break;
         }
     }
-})
+},  { capture: true })
 
 let replMain = new ReplConsole(document.getElementById("repl") as HTMLDivElement);
 
