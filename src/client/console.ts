@@ -638,7 +638,7 @@ export function getIndent(document: ReplConsole, position: [number, number]): nu
     for(let pos = state.length-1; pos >= 0; pos--) {
         for(let rule of state[pos].rules) {
             if(rule[0] == "inner") {
-                if(pos + rule[1] == state.length) {
+                if(pos + rule[1] == state.length-1) {
                     if(rule.length == 3) {
                         if(rule[2] > thisBlock.argPos)
                             indent = thisBlock.startIndent + 1;
