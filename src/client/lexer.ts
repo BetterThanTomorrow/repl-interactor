@@ -35,7 +35,7 @@ export class Lexer {
 
     match(type: string, raw?: string) {
         let p = this.peek();
-        if(p && p.type == type && (!raw || p.raw == raw)) {
+        if (p && p.type == type && (!raw || p.raw == raw)) {
             this.peeked = null;
             return true;
         }
@@ -43,7 +43,7 @@ export class Lexer {
     }
 
     scan(): Token {
-        if(this.peeked) {
+        if (this.peeked) {
             let res = this.peeked;
             this.peeked = null;
             return res;
@@ -62,9 +62,9 @@ export class Lexer {
         })
         this.position += length;
         if (token == null) {
-            if(this.position == this.source.length)
+            if (this.position == this.source.length)
                 return null;
-            throw new Error("Unexpected character at " + this.position + ": "+JSON.stringify(this.source));
+            throw new Error("Unexpected character at " + this.position + ": " + JSON.stringify(this.source));
         }
         return token;
     }
@@ -79,13 +79,17 @@ export class LexicalGrammar {
 
     /**
      * Defines a terminal with the given pattern and constructor.
-     * @param {string} pattern the pattern this nonterminal must match.
+     * @param {string | RegExp} pattern the pattern this terminal must match.
      * @param {function(Array<string>): Object} fn returns a lexical token representing
      *        this terminal.  An additional "offset" property containing the token source position
      *        will also be added, as well as a "raw" property, containing the raw string match.
      */
-    terminal(pattern: string, fn: (T, RegExpExecArray) => any): void {
-        this.rules.push({ r: new RegExp(pattern, "g"), fn: fn })
+    terminal(pattern: string | RegExp, fn: (T, RegExpExecArray) => any): void {
+        this.rules.push({
+            // This is b/c the RegExp constructor seems to not like our union type (unknown reasons why)
+            r: pattern instanceof RegExp ? new RegExp(pattern, "g") : new RegExp(pattern, "g"),
+            fn: fn
+        });
     }
 
     lex(source: string): Lexer {

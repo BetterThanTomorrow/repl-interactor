@@ -7,38 +7,38 @@ export interface Token extends LexerToken {
 }
 
 // whitespace
-toplevel.terminal("[\\s,]+", (l, m) => ({ type: "ws" }))
+toplevel.terminal(/[\s,]+/, (l, m) => ({ type: "ws" }))
 // comments
-toplevel.terminal(";.*", (l, m) => ({ type: "comment" }))
+toplevel.terminal(/;.*/, (l, m) => ({ type: "comment" }))
 // open parens
-toplevel.terminal("\\(|\\[|\\{|#\\(|#\\?\\(|#\\{|#\\?@\\(", (l, m) => ({ type: "open" }))
+toplevel.terminal(/\(|\[|\{|#\(|#\?\(|#\{|#\?@\(/, (l, m) => ({ type: "open" }))
 // close parens
-toplevel.terminal("\\)|\\]|\\}", (l, m) => ({ type: "close" }))
+toplevel.terminal(/\)|\]|\}/, (l, m) => ({ type: "close" }))
 
 // punctuators
-toplevel.terminal("~@|~|'|#'|#:|#_|\\^|`|#|\\^:", (l, m) => ({ type: "punc" }))
+toplevel.terminal(/~@|~|'|#'|#:|#_|\^|`|#|\^:/, (l, m) => ({ type: "punc" }))
 
-toplevel.terminal("true|false|nil", (l, m) => ({type: "lit"}))
-toplevel.terminal("[0-9]+[rR][0-9a-zA-Z]+", (l, m) => ({ type: "lit" }))
-toplevel.terminal("[-+]?[0-9]+(\\.[0-9]+)?([eE][-+]?[0-9]+)?", (l, m) => ({ type: "lit" }))
+toplevel.terminal(/true|false|nil/, (l, m) => ({ type: "lit" }))
+toplevel.terminal(/[0-9]+[rR][0-9a-zA-Z]+/, (l, m) => ({ type: "lit" }))
+toplevel.terminal(/[-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?/, (l, m) => ({ type: "lit" }))
 
-toplevel.terminal(":[^()[\\]\\{\\}#,~@'`^\"\\s;]*", (l, m) => ({ type: "kw" }))
+toplevel.terminal(/:[^()[\]\{\}#,~@'`^\"\s;]*/, (l, m) => ({ type: "kw" }))
 // this is a REALLY lose symbol definition, but similar to how clojure really collects it. numbers/true/nil are all 
-toplevel.terminal("[^()[\\]\\{\\}#,~@'`^\"\\s:;][^()[\\]\\{\\}#,~@'`^\"\\s;]*", (l, m) => ({ type: "id" }))
+toplevel.terminal(/[^()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\}#,~@'`^\"\s;]*/, (l, m) => ({ type: "id" }))
 // complete string on a single line
-toplevel.terminal('"([^"\\\\]|\\\\.)*"', (l, m) => ({ type: "str"}))
-toplevel.terminal('"([^"\\\\]|\\\\.)*', (l, m) => ({ type: "str-start"}))
+toplevel.terminal(/"([^"\\]|\\.)*"/, (l, m) => ({ type: "str" }))
+toplevel.terminal(/"([^"\\]|\\.)*/, (l, m) => ({ type: "str-start" }))
 
-toplevel.terminal('.', (l, m) => ({ type: "junk" }))
+toplevel.terminal(/./, (l, m) => ({ type: "junk" }))
 
 
 
 // Inside a multi-line string lexical grammar
 let multstring = new LexicalGrammar()
 // end a multiline string
-multstring.terminal('([^"\\\\]|\\\\.)*"', (l, m) => ({ type: "str-end" }))
+multstring.terminal(/([^"\\]|\\.)*"/, (l, m) => ({ type: "str-end" }))
 // still within a multiline string
-multstring.terminal('([^"\\\\]|\\\\.)*', (l, m) => ({ type: "str-inside" }))
+multstring.terminal(/([^"\\]|\\.)*/, (l, m) => ({ type: "str-inside" }))
 
 /** The state of the scanner */
 export interface ScannerState {
@@ -55,23 +55,23 @@ export class Scanner {
         let tk: LexerToken;
         do {
             tk = lex.scan();
-            if(tk) {
+            if (tk) {
                 let oldpos = lex.position;
-                switch(tk.type) {
+                switch (tk.type) {
                     case "str-end": // multiline string ended, switch back to toplevel
-                        this.state = { ...this.state, inString: false};
+                        this.state = { ...this.state, inString: false };
                         lex = toplevel.lex(line);
                         lex.position = oldpos;
                         break;
                     case "str-start": // multiline string started, switch to multstring.
-                        this.state = { ...this.state, inString: true};
+                        this.state = { ...this.state, inString: true };
                         lex = multstring.lex(line);
                         lex.position = oldpos;
                         break;
                 }
                 tks.push({ ...tk, state: this.state });
             }
-        } while(tk);
+        } while (tk);
         // insert a sentinel EOL value, this allows us to simplify TokenCaret's implementation.
         tks.push({ type: "eol", raw: "\n", offset: line.length, state: this.state })
         return tks;
