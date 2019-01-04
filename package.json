@@ -2,13 +2,15 @@
   "name": "repl-interactor",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
   "scripts": {
     "start": "ts-node --inspect=5858 src/server/main.ts",
     "dev": "concurrently \"node ./node_modules/nodemon/bin/nodemon.js\" \"npx webpack-dev-server\"",
-    "netlify": "npx webpack"
+    "netlify": "npx webpack --mode=production"
   },
-  "author": "",
+  "author": {
+    "name": "Matt Seddon",
+    "email": "matt@scryetek.com"
+  },
   "license": "MIT",
   "devDependencies": {
     "@types/compression": "0.0.36",

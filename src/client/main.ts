@@ -1,4 +1,3 @@
-import { Token } from "./clojure-lexer";
 import { ReplConsole, getIndent } from "./console";
 
 const isMac = navigator.platform.match(/Mac(Intel|PPC|68k)/i); // somewhat optimistic this would run on MacOS8 but hey ;)

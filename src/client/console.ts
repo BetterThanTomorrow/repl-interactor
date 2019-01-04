@@ -580,7 +580,6 @@ export function collectIndentState(document: ReplConsole, position: [number, num
     let startLine = cursor.line;
     let exprsOnLine = 0;
     let lastLine = cursor.line;
-    let lastIndent = -1;
     let indents: IndentState[] = [];
     do {
         if(!cursor.backwardSexp()) {
@@ -607,18 +606,18 @@ export function collectIndentState(document: ReplConsole, position: [number, num
             argPos = 0;
             exprsOnLine = 1;
         }
-        if(!whitespace.has(cursor.getToken().type)) {
-            argPos++;
-            exprsOnLine++;
-        }
 
         if(cursor.line != lastLine) {
             let head = cursor.clone();
             head.forwardSexp();
             head.forwardWhitespace();
-            lastIndent = head.rowCol[1];
             exprsOnLine = 0;
             lastLine = cursor.line;
+        }
+        
+        if(whitespace.has(cursor.getPrevToken().type)) {
+            argPos++;
+            exprsOnLine++;
         }
     } while(!cursor.atStart() && Math.abs(startLine-cursor.line) < maxLines && indents.length < maxDepth);
     //if(!indents.length)
@@ -638,7 +637,7 @@ export function getIndent(document: ReplConsole, position: [number, number]): nu
     for(let pos = state.length-1; pos >= 0; pos--) {
         for(let rule of state[pos].rules) {
             if(rule[0] == "inner") {
-                if(pos + rule[1] == state.length-1) {
+                if(pos + rule[1] == state.length) {
                     if(rule.length == 3) {
                         if(rule[2] > thisBlock.argPos)
                             indent = thisBlock.startIndent + 1;
@@ -647,7 +646,7 @@ export function getIndent(document: ReplConsole, position: [number, number]): nu
                 }
             } else if(rule[0] == "block" && pos == state.length-1) {
                 if(thisBlock.exprsOnLine <= rule[1]) {
-                    if(thisBlock.argPos > rule[1])
+                    if(thisBlock.argPos >= rule[1])
                         indent = thisBlock.startIndent + 1
                 } else {
                     indent = thisBlock.firstItemIdent;
