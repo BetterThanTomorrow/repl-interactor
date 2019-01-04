@@ -581,6 +581,7 @@ export function collectIndentState(document: ReplConsole, position: [number, num
     let startLine = cursor.line;
     let exprsOnLine = 0;
     let lastLine = cursor.line;
+    let lastIndent = 0;
     let indents: IndentState[] = [];
     do {
         if(!cursor.backwardSexp()) {
@@ -612,8 +613,11 @@ export function collectIndentState(document: ReplConsole, position: [number, num
             let head = cursor.clone();
             head.forwardSexp();
             head.forwardWhitespace();
-            exprsOnLine = 0;
-            lastLine = cursor.line;
+            if(!head.atEnd()) {
+                lastIndent = head.rowCol[1];
+                exprsOnLine = 0;
+                lastLine = cursor.line;
+            }
         }
 
         if(whitespace.has(cursor.getPrevToken().type)) {
@@ -621,8 +625,8 @@ export function collectIndentState(document: ReplConsole, position: [number, num
             exprsOnLine++;
         }
     } while(!cursor.atStart() && Math.abs(startLine-cursor.line) < maxLines && indents.length < maxDepth);
-    //if(!indents.length)
-    //    indents.push({argPos: 0, first: null, rules: [], exprsOnLine: 0, startIndent: lastIndent >= 0 ? lastIndent : 0, firstItemIdent: lastIndent >= 0 ? lastIndent : 0})
+    if(!indents.length)
+        indents.push({argPos: 0, first: null, rules: [], exprsOnLine: 0, startIndent: lastIndent >= 0 ? lastIndent : 0, firstItemIdent: lastIndent >= 0 ? lastIndent : 0})
     return indents;
 }
 

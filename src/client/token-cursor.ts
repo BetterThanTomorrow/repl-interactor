@@ -109,6 +109,7 @@ export class TokenCursor {
             switch(tk.type) {
                 case 'id':
                 case 'lit':
+                case 'kw':
                 case 'str':
                 case 'str-end':
                     this.next();
@@ -152,6 +153,7 @@ export class TokenCursor {
             switch(tk.type) {
                 case 'id':
                 case 'lit':
+                case 'kw':
                 case 'str':
                 case 'str-start':
                     this.previous();
