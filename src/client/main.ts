@@ -3,6 +3,7 @@ import { ReplConsole, getIndent } from "./console";
 const isMac = navigator.platform.match(/Mac(Intel|PPC|68k)/i); // somewhat optimistic this would run on MacOS8 but hey ;)
 
 window.addEventListener("keydown", e => {
+    e.preventDefault();
     let commandKey = isMac ? e.metaKey : e.ctrlKey;
 
     if(e.key.length == 1 && !e.metaKey && !e.ctrlKey) {
