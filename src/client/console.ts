@@ -407,7 +407,7 @@ export class ReplConsole {
 
     positionToOffset(pageX: number, pageY: number) {
         let rect = this.mainElem.getBoundingClientRect();
-        let y = pageY-rect.top;
+        let y = pageY-(rect.top + window.scrollY);
         let i: number;
         for(i=0; i<this.mainElem.children.length; i++) {
             let child = this.mainElem.children.item(i) as HTMLElement;
