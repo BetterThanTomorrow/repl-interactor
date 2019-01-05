@@ -18,6 +18,9 @@
 -----------------------------------------
 *fix stupid indent issues
 
-Code cleanup/tidy/document day
+Code cleanup/tidy/document
+-----------------------------------------
+Change model interface (ugh):
+  Use changeRange instead ala DocMirror
 -----------------------------------------
 paredit (prepare for backporting to calva)

@@ -74,27 +74,46 @@ let indentRules: { [id: string]: IndentRule[]} = {
     "with-redefs": [["block", 1]],
 }
 
-interface IndentState {
+/**
+ * The information about an enclosing s-expr, returned by collectIndents
+ */
+interface IndentInformation {
+    /** The first token in the expression (after the open paren/bracket etc.), as a raw string */
     first: string;
+    
+    /** The indent immediately after the open paren/bracket etc */
     startIndent: number;
+
+    /** If there is a second token on the same line as the first token, the indent for that token */
     firstItemIdent: number;
+
+    /** The applicable indent rules for this IndentInformation, local only. */
     rules: IndentRule[];
+
+    /** The index at which the cursor (or the sexpr containing the cursor at this level) is in the expression. */
     argPos: number;
+
+    /** The number of expressions on the first line of this expression. */
     exprsOnLine: number;
 }
 
-// If a token's raw string is in this set, then it counts as an 'open list'. An open list is something that could be
-// considered code, so special formatting rules apply.
-let OPEN_LIST = new Set(["#(", "#?(", "(", "#?@("])
+/**
+ * If a token's raw string is in this set, then it counts as an 'open list'. An open list that starts with a symbol
+ * is something that could be
+ * considered code, so special formatting rules apply.
+ */
+const OPEN_LIST = new Set(["#(", "#?(", "(", "#?@("])
 
 /**
+ * Analyses the text before position in the document, and returns a list of enclosing expression information with
+ * various indent information, for use with getIndent()
  * 
  * @param document The document to analyse
  * @param position The position (as [row, col] into the document to analyse from)
  * @param maxDepth The maximum depth upwards from the expression to search.
  * @param maxLines The maximum number of lines above the position to search until we bail with an imprecise answer.
  */
-export function collectIndentState(document: ReplConsole, position: [number, number], maxDepth: number = 3, maxLines: number = 20): IndentState[] {
+export function collectIndents(document: ReplConsole, position: [number, number], maxDepth: number = 3, maxLines: number = 20): IndentInformation[] {
     let cursor = document.getTokenCursor(position);
     cursor.backwardWhitespace();
     let argPos = 0;
@@ -102,7 +121,7 @@ export function collectIndentState(document: ReplConsole, position: [number, num
     let exprsOnLine = 0;
     let lastLine = cursor.line;
     let lastIndent = 0;
-    let indents: IndentState[] = [];
+    let indents: IndentInformation[] = [];
     do {
         if(!cursor.backwardSexp()) {
             // this needs some work..
@@ -150,9 +169,9 @@ export function collectIndentState(document: ReplConsole, position: [number, num
     return indents;
 }
 
-/** Returns [argumentPosition, startOfList] */
+/** Returns the expected newline indent for the given position, in characters. */
 export function getIndent(document: ReplConsole, position: [number, number]): number {
-    let state = collectIndentState(document, position);
+    let state = collectIndents(document, position);
     // now find applicable indent rules
     let indent = -1;
     let thisBlock = state[state.length-1];

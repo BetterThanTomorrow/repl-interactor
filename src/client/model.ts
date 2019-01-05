@@ -27,7 +27,7 @@ function equal(x: any, y: any): boolean {
     return false;
 }
 
-export class ReplLine {
+export class TextLine {
     tokens: Token[] = [];
     text: string;
     endState: ScannerState;
@@ -47,7 +47,7 @@ export class ReplLine {
 /** The underlying model for the REPL readline. */
 export class LineInputModel {
     /** The input lines. */
-    lines: ReplLine[] = [new ReplLine("", this.getStateForLine(0))];
+    lines: TextLine[] = [new TextLine("", this.getStateForLine(0))];
 
     /** Lines whos text has changed. */
     changedLines: Set<number> = new Set();
@@ -197,9 +197,9 @@ export class LineInputModel {
             this.markDirty(row);
             let newItems = [];
             for(let i=1; i<lines.length-1; i++) {
-                newItems.push(new ReplLine(lines[i], this.getStateForLine(0)));
+                newItems.push(new TextLine(lines[i], this.getStateForLine(0)));
             }
-            newItems.push(new ReplLine(lines[lines.length-1]+rhs, this.getStateForLine(0)));
+            newItems.push(new TextLine(lines[lines.length-1]+rhs, this.getStateForLine(0)));
             for(let i=0; i<lines.length; i++)
                 count+=lines[i].length+1;
             this.insertedLines.add([row, lines.length-1]);
