@@ -97,6 +97,20 @@ export class TokenCursor {
         }
     }
 
+    
+    getPrevToken(): Token {
+        if(this.line == 0 && this.token == 0)
+            return { type: "eol", raw: "\n", offset: 0, state: null };
+        let cursor = this.clone();
+        cursor.previous();
+        return cursor.getToken();
+    }
+
+    getToken() {
+        return this.doc.lines[this.line].tokens[this.token];
+    }
+
+    // Lisp navigation commands begin here.
     forwardSexp(): boolean {
         let delta = 0;
         this.forwardWhitespace();
@@ -243,17 +257,5 @@ export class TokenCursor {
             }
         } while(cursor.backwardSexp())
         return false;
-    }
-
-    getPrevToken(): Token {
-        if(this.line == 0 && this.token == 0)
-            return { type: "eol", raw: "\n", offset: 0, state: null };
-        let cursor = this.clone();
-        cursor.previous();
-        return cursor.getToken();
-    }
-
-    getToken() {
-        return this.doc.lines[this.line].tokens[this.token];
     }
 }

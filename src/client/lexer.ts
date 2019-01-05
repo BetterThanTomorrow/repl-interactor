@@ -3,12 +3,19 @@
  * @module lexer
  */
 
+/**
+ * The base Token class. Contains the token type,
+ * the raw string of the token, and the offset into the input line.
+ */
 export interface Token {
     type: string;
     raw: string;
     offset: number;
 }
 
+/**
+ * A Lexical rule for a terminal. Consists of a RegExp and an action.
+ */
 export interface Rule {
     r: RegExp;
     fn: (Lexer, RegExpExecArray) => any
@@ -27,27 +34,7 @@ export class Lexer {
     constructor(public source: string, public rules: Rule[]) {
     }
 
-    peeked: any;
-
-    peek() {
-        return this.peeked = this.scan();
-    }
-
-    match(type: string, raw?: string) {
-        let p = this.peek();
-        if (p && p.type == type && (!raw || p.raw == raw)) {
-            this.peeked = null;
-            return true;
-        }
-        return false;
-    }
-
     scan(): Token {
-        if (this.peeked) {
-            let res = this.peeked;
-            this.peeked = null;
-            return res;
-        }
         var token = null;
         var length = 0;
         this.rules.forEach(rule => {
@@ -92,6 +79,9 @@ export class LexicalGrammar {
         });
     }
 
+    /**
+     * Create a Lexer for the given input.
+     */
     lex(source: string): Lexer {
         return new Lexer(source, this.rules)
     }

@@ -4,6 +4,7 @@ import { ReplConsole } from "./console";
 
 const scanner = new Scanner();
 
+/** A cheesy deep-equal command for matching scanner states. Good enough to compare plain old js objects. */
 function equal(x: any, y: any): boolean {
     if(x==y) return true;
     if(x instanceof Array && y instanceof Array) {
@@ -43,27 +44,57 @@ export class ReplLine {
     }
 }
 
+/** The underlying model for the REPL readline. */
 export class LineInputModel {
+    /** The input lines. */
     lines: ReplLine[] = [new ReplLine("", this.getStateForLine(0))];
+
+    /** Lines whos text has changed. */
     changedLines: Set<number> = new Set();
+
+    /** Lines which must be inserted. */
     insertedLines: Set<[number, number]> = new Set();
+
+    /** Lines which must be deleted. */
     deletedLines: Set<[number, number]> = new Set();
+
+    /** Handles undo/redo support */
     undoManager = new UndoManager<ReplConsole>();
 
+    /** When set, insertString and deleteRange will be added to the undo history. */
     recordingUndo: boolean = false;
+
+    /** Lines which must be re-lexed. */
     dirtyLines: number[] = [];
 
+    /**
+     * Mark a line as needing to be re-lexed.
+     * 
+     * @param idx the index of the line which needs re-lexing (0-based)
+    */
     private markDirty(idx: number) {
         if(idx >= 0 && idx < this.lines.length && this.dirtyLines.indexOf(idx) == -1)
             this.dirtyLines.push(idx);
     }
 
+    /**
+     * Lines from start-end have been deleted, and there have been inserted new lines at that point.
+     * This twiddles the indices in dirtyLines so they are correct again.
+     * 
+     * @param start the index of the first line that was deleted
+     * @param end the index of the last line that was deleted
+     * @param inserted the number of lines that were inserted at start.
+     */
     private removeDirty(start: number, end: number, inserted: number) {
         let delta = end-start + inserted;
         this.dirtyLines = this.dirtyLines.filter(x => x < start || x > end)
                                           .map(x => x > start ? x - delta : x);
     }
 
+    /**
+     * Re-lexes all lines marked dirty, cascading onto the lines below if the end state for this line has
+     * changed.
+     */
     flushChanges() {
         if(!this.dirtyLines.length)
             return;
@@ -85,6 +116,11 @@ export class LineInputModel {
         }
     }
 
+    /**
+     * Returns the character offset in the model to the start of a given line.
+     * 
+     * @param line the line who's offset will be returned.
+     */
     getOffsetForLine(line: number) {
         let max = 0;
         for(let i=0; i<line; i++)
@@ -92,7 +128,13 @@ export class LineInputModel {
         return max;
     }
 
-    getText(start: number, end: number) {
+    /**
+     * Returns the text between start and end as a string. These may be in any order.
+     * 
+     * @param start the start offset in the text range
+     * @param end the end offset in the text range
+     */
+    getText(start: number, end: number): string {
         let st = this.getRowCol(Math.min(start, end));
         let en = this.getRowCol(Math.max(start, end));
 
@@ -108,6 +150,9 @@ export class LineInputModel {
         return lines.join('\n');
     }
 
+    /**
+     * Returns the row and column for a given text offset in this model.
+     */
     getRowCol(offset: number): [number, number] {
         for(let i=0; i<this.lines.length; i++) {
             if(offset > this.lines[i].text.length)
@@ -118,11 +163,27 @@ export class LineInputModel {
         return [this.lines.length-1, this.lines[this.lines.length-1].text.length]
     }
 
+    /**
+     * Returns the initial lexer state for a given line.
+     * Line 0 is always { inString: false }, all lines below are equivalent to their previous line's startState.
+     * 
+     * @param line the line to retrieve the lexer state.
+     */
     private getStateForLine(line: number): ScannerState {
         return line == 0 ? { inString: false, } : { ... this.lines[line-1].endState };
     }
 
-    insertString(offset: number, text: string, oldCursor?: [number, number], newCursor?: [number, number]): number {
+    /**
+     * Inserts a string at the given position in the document.
+     * 
+     * If recordingUndo is set, an UndoStep is inserted into the undoManager, which will record the original
+     * cursor position.
+     * 
+     * @param offset the offset to insert at
+     * @param text the text to insert
+     * @param oldCursor the [row,col] of the cursor at the start of the operation
+     */
+    insertString(offset: number, text: string, oldCursor?: [number, number],): number {
         let [row, col] = this.getRowCol(offset);
         let lines = text.split(/\r\n|\n/);
         let count = 0;
@@ -154,13 +215,22 @@ export class LineInputModel {
         return count;
     }
 
-    deleteRange(offset: number, length: number, oldCursor?: [number, number], newCursor?: [number, number]) {
-        this.removeDirty(this.getRowCol(offset)[0], this.getRowCol(offset+length)[0], 0);
+    /**
+     * Deletes count characters starting at offset from the document.
+     * If recordingUndo is set, adds an undoStep, using oldCursor and newCursor.
+     * 
+     * @param offset the offset to delete from
+     * @param count the number of characters to delete
+     * @param oldCursor the cursor at the start of the operation
+     * @param newCursor the cursor at the end of the operation
+     */
+    deleteRange(offset: number, count: number, oldCursor?: [number, number], newCursor?: [number, number]) {
+        this.removeDirty(this.getRowCol(offset)[0], this.getRowCol(offset+count)[0], 0);
 
-        let [row, col] = length > 0 ? this.getRowCol(offset) : this.getRowCol(offset+length);
-        let [endRow, endCol] = length > 0 ? this.getRowCol(offset+length) : this.getRowCol(offset);
+        let [row, col] = count > 0 ? this.getRowCol(offset) : this.getRowCol(offset+count);
+        let [endRow, endCol] = count > 0 ? this.getRowCol(offset+count) : this.getRowCol(offset);
 
-        let deleted = this.getText(offset, offset+length)
+        let deleted = this.getText(offset, offset+count)
         this.markDirty(row);
 
         if(endRow != row) {
@@ -171,13 +241,14 @@ export class LineInputModel {
             this.changedLines.add(row);
             this.deletedLines.add([row+1, endRow-row])
         } else {
-            this.lines[row].text = this.lines[row].text.substring(0, col) + this.lines[row].text.substring(col+length);
+            this.lines[row].text = this.lines[row].text.substring(0, col) + this.lines[row].text.substring(col+count);
             this.changedLines.add(row);
         }
         if(this.recordingUndo)
             this.undoManager.addUndoStep(new EditorDeleteUndoStep("Delete", offset, deleted, oldCursor, newCursor))
     }
 
+    /** Return the offset of the last character in this model. */
     get maxOffset() {
         let max = 0;
         for(let i=0; i<this.lines.length; i++)
@@ -194,7 +265,6 @@ class EditorUndoStep extends UndoStep<ReplConsole> {
     undo(c: ReplConsole) {
         if(this.oldSelection)
             [c.cursorStart, c.cursorEnd] = this.oldSelection;
-        // delete the insertedText
     }
 
     redo(c: ReplConsole) {

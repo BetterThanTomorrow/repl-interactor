@@ -1,4 +1,5 @@
-import { ReplConsole, getIndent } from "./console";
+import { ReplConsole } from "./console";
+import { getIndent } from "./indent";
 
 const isMac = navigator.platform.match(/Mac(Intel|PPC|68k)/i); // somewhat optimistic this would run on MacOS8 but hey ;)
 
