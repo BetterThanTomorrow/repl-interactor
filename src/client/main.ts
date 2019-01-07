@@ -46,7 +46,7 @@ document.getElementById("input").addEventListener("keydown", e => {
                 break;
             case 13:
                 replMain.model.undoManager.insertUndoStop();
-                let indent = getIndent(replMain, replMain.model.getRowCol(replMain.selectionEnd));
+                let indent = getIndent(replMain, replMain.selectionEnd);
                 let istr = ""
                 for(let i=0; i<indent; i++)
                     istr += " "
@@ -102,7 +102,7 @@ document.getElementById("input").addEventListener("blur", e => {
 input.addEventListener("input", e => {
     if(input.value == "\n") {
         replMain.model.undoManager.insertUndoStop();
-        let indent = getIndent(replMain, replMain.model.getRowCol(replMain.selectionEnd));
+        let indent = getIndent(replMain, replMain.selectionEnd);
         let istr = ""
         for(let i=0; i<indent; i++)
             istr += " "
