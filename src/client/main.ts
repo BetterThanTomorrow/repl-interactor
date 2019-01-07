@@ -3,13 +3,14 @@ import { getIndent } from "./indent";
 
 const isMac = navigator.platform.match(/Mac(Intel|PPC|68k)/i); // somewhat optimistic this would run on MacOS8 but hey ;)
 
-window.addEventListener("keydown", e => {
+document.getElementById("input").addEventListener("keydown", e => {
     let commandKey = isMac ? e.metaKey : e.ctrlKey;
 
     if(e.key.length == 1 && !e.metaKey && !e.ctrlKey) {
         if(e.key == " ")
             replMain.model.undoManager.insertUndoStop();    
         replMain.insertString(e.key);
+        e.preventDefault();
     } else if(e.key.length == 1 && commandKey) {
         switch(e.key) {
             case "a":
@@ -84,6 +85,28 @@ window.addEventListener("keydown", e => {
 },  { capture: true })
 
 let replMain = new ReplConsole(document.getElementById("repl") as HTMLDivElement);
+let input = document.getElementById("input") as HTMLInputElement;
+document.getElementById("input").addEventListener("blur", e => {
+    document.getElementById("input").focus();
+})
+
+input.addEventListener("input", e => {
+    if(input.value == "\n") {
+        replMain.model.undoManager.insertUndoStop();
+        let indent = getIndent(replMain, replMain.model.getRowCol(replMain.cursorEnd));
+        let istr = ""
+        for(let i=0; i<indent; i++)
+            istr += " "
+        replMain.insertString("\n"+istr);
+    } else {
+        replMain.insertString(input.value)
+    }
+    input.value = ""
+})
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("input").focus();
+})
 
 document.addEventListener("cut", e => {
     e.clipboardData.setData("text/plain", replMain.model.getText(replMain.cursorStart, replMain.cursorEnd));

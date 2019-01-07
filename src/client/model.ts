@@ -173,7 +173,7 @@ export class LineInputModel {
     }
 
     
-    changeRange(start: number, end: number, text: string) {
+    changeRange(start: number, end: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) {
         let [startLine, startCol] = this.getRowCol(start);
         let [endLine, endCol] = this.getRowCol(end);
         // extract the lines we will replace
@@ -227,8 +227,8 @@ export class LineInputModel {
      * @param text the text to insert
      * @param oldCursor the [row,col] of the cursor at the start of the operation
      */
-    insertString(offset: number, text: string, oldCursor?: [number, number],): number {
-        this.changeRange(offset, offset, text);
+    insertString(offset: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]): number {
+        this.changeRange(offset, offset, text, oldSelection, newSelection);
         return text.length;
     }
 
@@ -241,8 +241,8 @@ export class LineInputModel {
      * @param oldCursor the cursor at the start of the operation
      * @param newCursor the cursor at the end of the operation
      */
-    deleteRange(offset: number, count: number, oldCursor?: [number, number], newCursor?: [number, number]) {
-        this.changeRange(offset, offset+count, "");
+    deleteRange(offset: number, count: number, oldSelection?: [number, number], newSelection?: [number, number]) {
+        this.changeRange(offset, offset+count, "", oldSelection, newSelection);
     }
 
     /** Return the offset of the last character in this model. */
@@ -260,7 +260,7 @@ export class LineInputModel {
  * All Editor Undo steps contain the position of the cursor before and after the edit.
  */
 class EditorUndoStep extends UndoStep<ReplConsole> {
-    constructor(public name: string, public oldSelection?: [number, number], public newSelection?: [number, number]) {
+    constructor(public name: string, public start: number, public insertedText: string, public deletedText: string, public oldSelection?: [number, number], public newSelection?: [number, number]) {
         super();
     }
 
@@ -275,9 +275,7 @@ class EditorUndoStep extends UndoStep<ReplConsole> {
     }
 }
 
-/**
- * An insertText undo stop.
- */
+/*
 class EditorInsertUndoStep extends EditorUndoStep {
     constructor(name: string, public offset: number, public insertedText: string, oldSelection?: [number, number], newSelection?: [number, number]) {
         super(name);
@@ -307,10 +305,7 @@ class EditorInsertUndoStep extends EditorUndoStep {
     }
 }
 
-/**
- * An deleteRange undo stop.
- */
-class EditorDeleteUndoStep extends EditorUndoStep {
+ class EditorDeleteUndoStep extends EditorUndoStep {
     constructor(name: string, public offset: number, public deletedText: string, oldSelection?: [number, number], newSelection?: [number, number]) {
         super(name);
         this.oldSelection = oldSelection;
@@ -347,3 +342,4 @@ class EditorDeleteUndoStep extends EditorUndoStep {
         super.redo(c);
     }
 }
+*/
