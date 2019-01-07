@@ -17,6 +17,18 @@ document.getElementById("input").addEventListener("keydown", e => {
                 replMain.updateState();
             })
             e.preventDefault();
+        } else if(e.key == "[" && e.altKey) {
+            replMain.withUndo(() => {
+                paredit.wrapSexpr(replMain, "[", "]");
+                replMain.updateState();
+            })
+            e.preventDefault();
+        } else if(e.key == "{" && e.altKey) {
+            replMain.withUndo(() => {
+                paredit.wrapSexpr(replMain, "{", "}");
+                replMain.updateState();
+            })
+            e.preventDefault();
         } else if(e.key == "S" && e.altKey) {
             replMain.withUndo(() => {
                 paredit.splitSexp(replMain);

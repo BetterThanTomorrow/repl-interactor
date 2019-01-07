@@ -6,8 +6,8 @@ export function wrapSexpr(doc: ReplConsole, open: string, close: string, start: 
     if(cursor.withinString())
         throw new Error("Invalid context for paredit.wrapSexpr");
     cursor.forwardSexp()
-    doc.model.insertString(cursor.offset, ")");
-    doc.model.insertString(start, "(");
+    doc.model.insertString(cursor.offset, close);
+    doc.model.insertString(start, open);
 }
 
 export function splitSexp(doc: ReplConsole, start: number = doc.selectionEnd) {
