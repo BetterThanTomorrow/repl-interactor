@@ -34,6 +34,7 @@ export class Lexer {
     constructor(public source: string, public rules: Rule[]) {
     }
 
+    /** Returns the next token in this lexer, or null if at the end. If the match fails, throws an Error. */
     scan(): Token {
         var token = null;
         var length = 0;

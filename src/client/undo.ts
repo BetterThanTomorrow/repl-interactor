@@ -2,6 +2,7 @@
  * A reversable operation to a document of type T.
  */
 export abstract class UndoStep<T> {
+    /** The name of this undo operation. */
     name: string;
     /** If true, the UndoManager will not attempt to coalesce events onto this step. */
     undoStop: boolean;

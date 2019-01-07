@@ -2,15 +2,17 @@ import { LineInputModel } from "./model";
 import { Token } from "./clojure-lexer";
 import { TokenCursor } from "./token-cursor";
 
+/** A cheesy utility canvas, used to measure the length of text. */
 const canvas = document.createElement("canvas");
 let ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
+/** Returns the length of the string. */
 function measureText(str: string) {
     return ctx.measureText(str).width;
 }
 
-
-let canonicalParens = {
+/** Maps open and close parentheses to their class. */
+const canonicalParens = {
     '#?(': '()',
     '#?@(': '()',
     '#(': '()',
@@ -23,33 +25,40 @@ let canonicalParens = {
     ']': '[]'
 }
 
+/** Returns true if open and close are compatible parentheses */
 function validPair(open: string, close: string) {
     return canonicalParens[open] == canonicalParens[close];
 }
 
+/**
+ * A syntax-highlighting text editor.
+ */
 export class ReplConsole {
+    /** The offset of the start of the selection into the document. */
     private _cursorStart: number = 0;
 
+    /** Returns the offset of the start of the selection. */
     get cursorStart() {
         return this._cursorStart
     };
     
+    /** Sets the start of the selection. */
     set cursorStart(val: number) {
         this._cursorStart = Math.min(this.model.maxOffset, Math.max(val, 0));
     }
 
+    /** The offset of the end of the selection into the document. */
     private _cursorEnd: number = 0;
 
+    /** Returns the offset of the end of the selection. */
     get cursorEnd() {
         return this._cursorEnd
     };
-    
+
+    /** Sets the end of the selection. */
     set cursorEnd(val: number) {
         this._cursorEnd = Math.min(this.model.maxOffset, Math.max(val, 0));
-    }    
-
-    private lastCursorStart: number = 0;
-    private lastCursorEnd: number = 0;
+    }
 
     /** The underlying tokenized source. */
     model = new LineInputModel();
@@ -63,6 +72,19 @@ export class ReplConsole {
     /** The target column of the caret, for up/down movement. */
     caretX: number = 0;
 
+    /** The start of the selection when we last updated the component's DOM. */
+    private lastCursorStart: number = 0;
+
+    /** The end of the selection when we last updated the component's DOM. */
+    private lastCursorEnd: number = 0;
+
+    /**
+     * Returns a TokenCursor into the document.
+     * 
+     * @param row the line to position the cursor at.
+     * @param col the column to position the cursor at. 
+     * @param previous if true, position the cursor at the previous token.
+     */
     public getTokenCursor([row, col]: [number, number] = this.model.getRowCol(this.cursorEnd), previous: boolean = false) {
         let line = this.model.lines[row]
         let lastIndex = 0;
@@ -77,16 +99,30 @@ export class ReplConsole {
         }
     }
 
-    withUndo(f: () => void) {
+    /**
+     * Executes a block of code, during which any edits that are performed on the document will be created with Undo support.
+     * This should happen almost all of the time- in fact the only time it shouldn't is when replaying undo/redo operations.
+     * 
+     * FIXME: Perhaps this should be "withoutUndo"?
+     * 
+     * @param body the code to execute.
+     */
+    withUndo(body: () => void) {
         let oldUndo = this.model.recordingUndo;
         try {
             this.model.recordingUndo = true;
-            f();
+            body();
         } finally {
             this.model.recordingUndo = oldUndo;
         }
     }
 
+    /**
+     * Inserts a string at the current cursor location.
+     * 
+     * FIXME: this should just be `changeRange`.
+     * @param text the text to insert
+     */
     insertString(text: string) {
         this.withUndo(() => {
             if(this.cursorStart != this.cursorEnd) {
@@ -102,6 +138,11 @@ export class ReplConsole {
         });
     }
 
+    /**
+     * Moves the caret left one character, using text editor semantics.
+     * 
+     * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
+     */
     caretLeft(clear: boolean = true) {
         if(clear && this.cursorStart != this.cursorEnd) {
             if(this.cursorStart < this.cursorEnd)
@@ -117,6 +158,11 @@ export class ReplConsole {
         this.caretX = this.model.getRowCol(this.cursorEnd)[1];
     }
 
+    /**
+     * Moves the caret right one character, using text editor semantics.
+     * 
+     * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
+     */
     caretRight(clear: boolean = true) {
         if(clear && this.cursorStart != this.cursorEnd) {
             if(this.cursorStart > this.cursorEnd)
@@ -132,6 +178,11 @@ export class ReplConsole {
         this.caretX = this.model.getRowCol(this.cursorEnd)[1];
     }
 
+    /**
+     * Moves the caret to the beginning of the document, using text editor semantics.
+     * 
+     * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
+     */
     caretHomeAll(clear: boolean = true) {
         this.cursorEnd = 0;
         if(clear)
@@ -140,6 +191,11 @@ export class ReplConsole {
         this.caretX = this.model.getRowCol(this.cursorEnd)[1];
     }
 
+    /**
+     * Moves the caret to the end of the document, using text editor semantics.
+     * 
+     * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
+     */
     caretEndAll(clear: boolean = true) {
         this.cursorEnd = this.model.maxOffset;
         if(clear)
@@ -148,6 +204,11 @@ export class ReplConsole {
         this.caretX = this.model.getRowCol(this.cursorEnd)[1];
     }
 
+    /**
+     * Moves the caret to the beginning of the line, using text editor semantics.
+     * 
+     * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
+     */
     caretHome(clear: boolean = true) {
         let [row, col] = this.model.getRowCol(this.cursorEnd);
         this.cursorEnd = this.cursorEnd-col;
@@ -157,6 +218,11 @@ export class ReplConsole {
         this.caretX = this.model.getRowCol(this.cursorEnd)[1];
     }
 
+    /**
+     * Moves the caret to the end of the line, using text editor semantics.
+     * 
+     * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
+     */
     caretEnd(clear: boolean = true) {
         let [row, col] = this.model.getRowCol(this.cursorEnd);
         this.cursorEnd = this.cursorEnd-col + this.model.lines[row].text.length;
@@ -166,6 +232,11 @@ export class ReplConsole {
         this.caretX = this.model.getRowCol(this.cursorEnd)[1];
     }
 
+    /**
+     * Moves the caret to the previous line, using text editor semantics.
+     * 
+     * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
+     */
     caretUp(clear: boolean = true) {
         let [row, col] = this.model.getRowCol(this.cursorEnd);
         if(row > 0) {
@@ -179,6 +250,11 @@ export class ReplConsole {
         this.updateState();
     }
 
+    /**
+     * Moves the caret to the next line, using text editor semantics.
+     * 
+     * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
+     */
     caretDown(clear: boolean = true) {
         let [row, col] = this.model.getRowCol(this.cursorEnd);
         if(row < this.model.lines.length-1) {
@@ -192,6 +268,11 @@ export class ReplConsole {
         this.updateState();
     }
     
+    /**
+     * Deletes the current selection.
+     * 
+     * FIXME: this should just be `changeRange`
+     */
     private deleteSelection() {
         this.withUndo(() => {
             if(this.cursorStart != this.cursorEnd) {
@@ -201,6 +282,11 @@ export class ReplConsole {
         })
     }
 
+    /**
+     * If there is no selection- deletes the character to the left of the cursor and moves it back one character.
+     * 
+     * If there is a selection, deletes the selection.
+     */
     backspace() {
         this.withUndo(() => {
             if(this.cursorStart != this.cursorEnd) {
@@ -217,6 +303,11 @@ export class ReplConsole {
         });
     }
 
+    /**
+     * If there is no selection- deletes the character to the right of the cursor.
+     * 
+     * If there is a selection, deletes the selection.
+     */
     delete() {
         this.withUndo(() => {
             if(this.cursorStart != this.cursorEnd) {
@@ -230,6 +321,11 @@ export class ReplConsole {
         });
     }
 
+    /**
+     * Construct a selection marker div.
+     * @param start the left hand side start position in pixels.
+     * @param width the width of the marker, in pixels.
+     */
     private makeSelection(start: number, width: number) {
         let div = document.createElement("div")
         div.className = "sel-marker";
@@ -239,16 +335,24 @@ export class ReplConsole {
         return div;
     }
 
+    /**
+     * If we are rendering a matched parenthesis, a cursor pointing at the close parenthesis.
+     */
     closeParen: TokenCursor;
+
+    /**
+     * If we are rendering a matched parenthesis, a cursor pointing at the open parenthesis.
+     */
     openParen: TokenCursor;
 
+    /**
+     * True if we are rendering a matched parenthesis.
+     */
     matchingParen = false;
 
-    private getElementForToken(cursor: TokenCursor) {
-        if(cursor && this.inputLines[cursor.line])
-            return this.inputLines[cursor.line].querySelector(".content").children.item(cursor.token) as HTMLElement
-    }
-
+    /**
+     * Clears the rendering for matching parenthesis.
+     */
     private clearParenMatches() {
         let cp = this.getElementForToken(this.closeParen);
         if(cp) {
@@ -265,6 +369,9 @@ export class ReplConsole {
         this.openParen = null;
     }
 
+    /**
+     * Sets the rendering for matching parenthesis.
+     */
     updateParenMatches() {
         let cursor = this.getTokenCursor();
 
@@ -301,6 +408,15 @@ export class ReplConsole {
             else
                 op.classList.add("fail-match")
         }
+    }
+
+    /**
+     * Given a TokenCursor, returns the HTMLElement that is rendered for this token. 
+     * @param cursor 
+     */
+    private getElementForToken(cursor: TokenCursor) {
+        if(cursor && this.inputLines[cursor.line])
+            return this.inputLines[cursor.line].querySelector(".content").children.item(cursor.token) as HTMLElement
     }
 
     /**
@@ -477,8 +593,15 @@ export class ReplConsole {
     }
 }
 
+/**
+ * A set of tokens which should be highlighted as macros.
+ */
 const macros = new Set(["if", "let", "do", "while", "cond", "case"]);
 
+/**
+ * Constructs an HTMLElement to represent a token with the correct syntax highlighting.
+ * @param tk the token to construct.
+ */
 function makeToken(tk: Token) {
     let span = document.createElement("span");
     let className = tk.type;

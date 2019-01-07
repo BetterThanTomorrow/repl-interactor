@@ -4,6 +4,7 @@ const whitespace = new Set(["ws", "comment", "eol"])
 
 type IndentRule = ["block", number] | ["inner", number] | ["inner", number, number];
 
+/** Rules shamelessly copied from cljfmt. */
 let indentRules: { [id: string]: IndentRule[]} = {
     "alt!": [["block", 0]],
     "alt!!": [["block", 0]],

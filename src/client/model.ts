@@ -4,7 +4,7 @@ import { ReplConsole } from "./console";
 
 const scanner = new Scanner();
 
-/** A cheesy deep-equal command for matching scanner states. Good enough to compare plain old js objects. */
+/** A cheesy deep-equal function for matching scanner states. Good enough to compare plain old js objects. */
 function equal(x: any, y: any): boolean {
     if(x==y) return true;
     if(x instanceof Array && y instanceof Array) {
@@ -49,7 +49,7 @@ export class LineInputModel {
     /** The input lines. */
     lines: TextLine[] = [new TextLine("", this.getStateForLine(0))];
 
-    /** Lines whos text has changed. */
+    /** Lines whose text has changed. */
     changedLines: Set<number> = new Set();
 
     /** Lines which must be inserted. */
@@ -257,6 +257,11 @@ export class LineInputModel {
     }
 }
 
+/**
+ * An Editor UndoStep.
+ * 
+ * All Editor Undo steps contain the position of the cursor before and after the edit.
+ */
 class EditorUndoStep extends UndoStep<ReplConsole> {
     constructor(public name: string, public oldSelection?: [number, number], public newSelection?: [number, number]) {
         super();
@@ -273,6 +278,9 @@ class EditorUndoStep extends UndoStep<ReplConsole> {
     }
 }
 
+/**
+ * An insertText undo stop.
+ */
 class EditorInsertUndoStep extends EditorUndoStep {
     constructor(name: string, public offset: number, public insertedText: string, oldSelection?: [number, number], newSelection?: [number, number]) {
         super(name);
@@ -302,6 +310,9 @@ class EditorInsertUndoStep extends EditorUndoStep {
     }
 }
 
+/**
+ * An deleteRange undo stop.
+ */
 class EditorDeleteUndoStep extends EditorUndoStep {
     constructor(name: string, public offset: number, public deletedText: string, oldSelection?: [number, number], newSelection?: [number, number]) {
         super(name);

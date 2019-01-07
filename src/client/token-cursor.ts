@@ -1,7 +1,9 @@
 import { LineInputModel } from "./model";
 import { Token } from "./clojure-lexer";
 
-/** A mutable cursor into the token stream. */
+/**
+ * A mutable cursor into the token stream.
+ */
 export class TokenCursor {
     constructor(public doc: LineInputModel, public line: number, public token: number) {
     }
@@ -11,6 +13,10 @@ export class TokenCursor {
         return new TokenCursor(this.doc, this.line, this.token);
     }
 
+    /**
+     * Sets this TokenCursor state to the same as another.
+     * @param cursor the cursor to copy state from.
+     */
     set(cursor: TokenCursor) {
         this.doc = cursor.doc;
         this.line = cursor.line;
@@ -55,6 +61,27 @@ export class TokenCursor {
         }
     }
 
+    /**
+     * Return the token immediately preceding this cursor. At the start of the file, a token of type "eol" is returned.
+     */
+    getPrevToken(): Token {
+        if(this.line == 0 && this.token == 0)
+            return { type: "eol", raw: "\n", offset: 0, state: null };
+        let cursor = this.clone();
+        cursor.previous();
+        return cursor.getToken();
+    }
+
+    /**
+     * Returns the token at this cursor position.
+     */
+    getToken() {
+        return this.doc.lines[this.line].tokens[this.token];
+    }
+
+    /**
+     * Moves this token past the inside of a multiline string
+     */
     fowardString() {
         while(!this.atEnd()) {
             switch(this.getToken().type) {
@@ -69,6 +96,9 @@ export class TokenCursor {
         }
     }
 
+    /**
+     * Moves this token past any whitespace or comment.
+     */
     forwardWhitespace() {
         while(!this.atEnd()) {
             switch(this.getToken().type) {
@@ -83,6 +113,9 @@ export class TokenCursor {
         }
     }
 
+    /**
+     * Moves this token back past any whitespace or comment.
+     */
     backwardWhitespace() {
         while(!this.atStart()) {
             switch(this.getPrevToken().type) {
@@ -97,20 +130,17 @@ export class TokenCursor {
         }
     }
 
-    
-    getPrevToken(): Token {
-        if(this.line == 0 && this.token == 0)
-            return { type: "eol", raw: "\n", offset: 0, state: null };
-        let cursor = this.clone();
-        cursor.previous();
-        return cursor.getToken();
-    }
-
-    getToken() {
-        return this.doc.lines[this.line].tokens[this.token];
-    }
-
     // Lisp navigation commands begin here.
+
+    /**
+     * Moves this token forward one s-expression at this level.
+     * If the next non whitespace token is an open paren, skips past it's matching
+     * close paren.
+     * 
+     * If the next token is a form of closing paren, does not move.
+     * 
+     * @returns true if the cursor was moved, false otherwise.
+     */
     forwardSexp(): boolean {
         let delta = 0;
         this.forwardWhitespace();
@@ -154,6 +184,15 @@ export class TokenCursor {
         }
     }
 
+    /**
+     * Moves this token backward one s-expression at this level.
+     * If the previous non whitespace token is an close paren, skips past it's matching
+     * open paren.
+     * 
+     * If the previous token is a form of open paren, does not move.
+     * 
+     * @returns true if the cursor was moved, false otherwise.
+     */
     backwardSexp() {
         let delta = 0;
         this.backwardWhitespace();
@@ -197,6 +236,9 @@ export class TokenCursor {
         }
     }
 
+    /**
+     * Moves this cursor to the close paren of the containing sexpr, or until the end of the document.
+     */
     forwardList(): boolean {
         let cursor = this.clone();
         while(cursor.forwardSexp()) {
@@ -209,6 +251,9 @@ export class TokenCursor {
         return false;
     }
 
+    /**
+     * Moves this cursor backwards to the open paren of the containing sexpr, or until the start of the document.
+     */
     backwardList(): boolean {
         let cursor = this.clone();
         while(cursor.backwardSexp()) {
@@ -220,6 +265,10 @@ export class TokenCursor {
         return false;
     }
 
+    /**
+     * If possible, moves this cursor forwards past any whitespace, and then past the immediately following open-paren and returns true.
+     * If the source does not match this, returns false and does not move the cursor.
+     */
     downList(): boolean {
         let cursor = this.clone();
         do {
@@ -233,6 +282,10 @@ export class TokenCursor {
         return false;
     }
 
+    /**
+     * If possible, moves this cursor forwards past any whitespace, and then past the immediately following close-paren and returns true.
+     * If the source does not match this, returns false and does not move the cursor.
+     */
     upList(): boolean {
         let cursor = this.clone();
         do {
@@ -246,6 +299,10 @@ export class TokenCursor {
         return false;
     }
 
+    /**
+     * If possible, moves this cursor backwards past any whitespace, and then backwards past the immediately following open-paren and returns true.
+     * If the source does not match this, returns false and does not move the cursor.
+     */
     backwardUpList(): boolean {
         let cursor = this.clone();
         do {
