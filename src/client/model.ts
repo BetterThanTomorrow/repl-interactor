@@ -172,7 +172,17 @@ export class LineInputModel {
         return line == 0 ? { inString: false, } : { ... this.lines[line-1].endState };
     }
 
-    
+    /**
+     * Changes the model. Deletes any text between `start` and `end`, and the inserts `text`.
+     * 
+     * If provided, `oldSelection` and `newSelection` are used to manage the cursor positioning for undo support.
+     * 
+     * @param start the start offset in the range to delete
+     * @param end the end offset in the range to delete
+     * @param text the new text to insert
+     * @param oldSelection the old selection
+     * @param newSelection the new selection
+     */
     changeRange(start: number, end: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) {
         let deletedText = this.recordingUndo ? this.getText(start, end) : "";
         let [startLine, startCol] = this.getRowCol(start);
