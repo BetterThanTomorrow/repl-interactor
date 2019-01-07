@@ -16,6 +16,13 @@ document.getElementById("input").addEventListener("keydown", e => {
                 paredit.wrapSexpr(replMain, "(", ")");
                 replMain.updateState();
             })
+            e.preventDefault();
+        } else if(e.key == "S" && e.altKey) {
+            replMain.withUndo(() => {
+                paredit.splitSexp(replMain);
+                replMain.updateState();
+            })            
+            e.preventDefault();
         } else {
             replMain.insertString(e.key);
             e.preventDefault();

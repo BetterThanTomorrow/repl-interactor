@@ -258,7 +258,7 @@ export class LispTokenCursor extends TokenCursor {
     forwardList(): boolean {
         let cursor = this.clone();
         while(cursor.forwardSexp()) {
-            if(cursor.getPrevToken().type == "close") {
+            if(cursor.getToken().type == "close") {
                 this.set(cursor);
                 return true;
             }
@@ -273,7 +273,7 @@ export class LispTokenCursor extends TokenCursor {
     backwardList(): boolean {
         let cursor = this.clone();
         while(cursor.backwardSexp()) {
-            if(cursor.getToken().type == "open") {
+            if(cursor.getPrevToken().type == "open") {
                 this.set(cursor);
                 return true;
             }

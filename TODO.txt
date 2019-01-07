@@ -26,9 +26,12 @@
 
 -----------------------------------------
 paredit (prepare for backporting to calva)
-  wrapAround
-  splitSexp
-  spliceSexp
-  slurpSexp
-  barfSexp
-  closeAndNewline
+  *wrapAround
+  *splitSexp
+   spliceSexp
+   slurpSexp
+   barfSexp
+
+   group undos for paredit.
+
+   auto close, auto delete empty list.
