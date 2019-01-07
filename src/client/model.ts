@@ -282,13 +282,13 @@ class EditorUndoStep extends UndoStep<ReplConsole> {
     undo(c: ReplConsole) {
         c.model.changeRange(this.start, this.start+this.insertedText.length, this.deletedText);
         if(this.oldSelection)
-            [c.cursorStart, c.cursorEnd] = this.oldSelection;
+            [c.selectionStart, c.selectionEnd] = this.oldSelection;
     }
 
     redo(c: ReplConsole) {
         c.model.changeRange(this.start, this.start+this.deletedText.length, this.insertedText);
         if(this.newSelection)
-            [c.cursorStart, c.cursorEnd] = this.newSelection;
+            [c.selectionStart, c.selectionEnd] = this.newSelection;
     }
 
     coalesce(step: EditorUndoStep) {

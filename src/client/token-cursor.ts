@@ -28,6 +28,11 @@ export class TokenCursor {
         return [this.line, this.getToken().offset];
     }
 
+    /** Return the offset */
+    get offset() {
+        return this.doc.getOffsetForLine(this.line) +  this.getToken().offset;
+    }
+
     /** True if we are at the start of the document */
     atStart() {
         return this.token == 0 && this.line == 0;
@@ -78,7 +83,18 @@ export class TokenCursor {
     getToken() {
         return this.doc.lines[this.line].tokens[this.token];
     }
+}
 
+export class LispTokenCursor extends TokenCursor {
+    constructor(public doc: LineInputModel, public line: number, public token: number) {
+        super(doc, line, token);
+    }
+
+    /** Create a copy of this cursor. */
+    clone() {
+        return new LispTokenCursor(this.doc, this.line, this.token);
+    }
+    
     /**
      * Moves this token past the inside of a multiline string
      */
@@ -313,6 +329,19 @@ export class TokenCursor {
                 return true;
             }
         } while(cursor.backwardSexp())
+        return false;
+    }
+
+    withinString() {
+        let tk = this.getToken().type;
+        if(tk == "str" || tk == "str-start" || tk == "str-end" || tk == "str-inside") {
+            return true;
+        }
+        if(tk == "ws") {
+            tk = this.getPrevToken().type;
+            if(tk == "str-inside" || tk == "str-start")
+                return true;
+        }
         return false;
     }
 }

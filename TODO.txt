@@ -26,3 +26,9 @@
 
 -----------------------------------------
 paredit (prepare for backporting to calva)
+  wrapAround
+  splitSexp
+  spliceSexp
+  slurpSexp
+  barfSexp
+  closeAndNewline

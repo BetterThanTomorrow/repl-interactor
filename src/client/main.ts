@@ -1,5 +1,6 @@
 import { ReplConsole } from "./console";
 import { getIndent } from "./indent";
+import * as paredit from "./paredit";
 
 const isMac = navigator.platform.match(/Mac(Intel|PPC|68k)/i); // somewhat optimistic this would run on MacOS8 but hey ;)
  
@@ -9,13 +10,21 @@ document.getElementById("input").addEventListener("keydown", e => {
     if(e.key.length == 1 && !e.metaKey && !e.ctrlKey) {
         if(e.key == " ")
             replMain.model.undoManager.insertUndoStop();    
-        replMain.insertString(e.key);
-        e.preventDefault();
+
+        if(e.key == "(" && e.altKey) {
+            replMain.withUndo(() => {
+                paredit.wrapSexpr(replMain, "(", ")");
+                replMain.updateState();
+            })
+        } else {
+            replMain.insertString(e.key);
+            e.preventDefault();
+        }
     } else if(e.key.length == 1 && commandKey) {
         switch(e.key) {
             case "a":
-                replMain.cursorStart = 0;
-                replMain.cursorEnd = replMain.model.maxOffset;
+                replMain.selectionStart = 0;
+                replMain.selectionEnd = replMain.model.maxOffset;
                 replMain.updateState();
                 e.preventDefault();
                 break;
@@ -37,7 +46,7 @@ document.getElementById("input").addEventListener("keydown", e => {
                 break;
             case 13:
                 replMain.model.undoManager.insertUndoStop();
-                let indent = getIndent(replMain, replMain.model.getRowCol(replMain.cursorEnd));
+                let indent = getIndent(replMain, replMain.model.getRowCol(replMain.selectionEnd));
                 let istr = ""
                 for(let i=0; i<indent; i++)
                     istr += " "
@@ -93,7 +102,7 @@ document.getElementById("input").addEventListener("blur", e => {
 input.addEventListener("input", e => {
     if(input.value == "\n") {
         replMain.model.undoManager.insertUndoStop();
-        let indent = getIndent(replMain, replMain.model.getRowCol(replMain.cursorEnd));
+        let indent = getIndent(replMain, replMain.model.getRowCol(replMain.selectionEnd));
         let istr = ""
         for(let i=0; i<indent; i++)
             istr += " "
@@ -109,13 +118,13 @@ document.addEventListener("DOMContentLoaded", () => {
 })
 
 document.addEventListener("cut", e => {
-    e.clipboardData.setData("text/plain", replMain.model.getText(replMain.cursorStart, replMain.cursorEnd));
+    e.clipboardData.setData("text/plain", replMain.model.getText(replMain.selectionStart, replMain.selectionEnd));
     replMain.delete();
     e.preventDefault();
 })
 
 document.addEventListener("copy", e => {
-    e.clipboardData.setData("text/plain", replMain.model.getText(replMain.cursorStart, replMain.cursorEnd));
+    e.clipboardData.setData("text/plain", replMain.model.getText(replMain.selectionStart, replMain.selectionEnd));
     e.preventDefault();
 })
 

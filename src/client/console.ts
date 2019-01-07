@@ -1,6 +1,6 @@
 import { LineInputModel } from "./model";
 import { Token } from "./clojure-lexer";
-import { TokenCursor } from "./token-cursor";
+import { TokenCursor, LispTokenCursor } from "./token-cursor";
 
 /** A cheesy utility canvas, used to measure the length of text. */
 const canvas = document.createElement("canvas");
@@ -35,29 +35,29 @@ function validPair(open: string, close: string) {
  */
 export class ReplConsole {
     /** The offset of the start of the selection into the document. */
-    private _cursorStart: number = 0;
+    private _selectionStart: number = 0;
 
     /** Returns the offset of the start of the selection. */
-    get cursorStart() {
-        return this._cursorStart
+    get selectionStart() {
+        return this._selectionStart
     };
     
     /** Sets the start of the selection. */
-    set cursorStart(val: number) {
-        this._cursorStart = Math.min(this.model.maxOffset, Math.max(val, 0));
+    set selectionStart(val: number) {
+        this._selectionStart = Math.min(this.model.maxOffset, Math.max(val, 0));
     }
 
     /** The offset of the end of the selection into the document. */
-    private _cursorEnd: number = 0;
+    private _selectionEnd: number = 0;
 
     /** Returns the offset of the end of the selection. */
-    get cursorEnd() {
-        return this._cursorEnd
+    get selectionEnd() {
+        return this._selectionEnd
     };
 
     /** Sets the end of the selection. */
-    set cursorEnd(val: number) {
-        this._cursorEnd = Math.min(this.model.maxOffset, Math.max(val, 0));
+    set selectionEnd(val: number) {
+        this._selectionEnd = Math.min(this.model.maxOffset, Math.max(val, 0));
     }
 
     /** The underlying tokenized source. */
@@ -73,10 +73,10 @@ export class ReplConsole {
     caretX: number = 0;
 
     /** The start of the selection when we last updated the component's DOM. */
-    private lastCursorStart: number = 0;
+    private lastSelectionStart: number = 0;
 
     /** The end of the selection when we last updated the component's DOM. */
-    private lastCursorEnd: number = 0;
+    private lastSelectionEnd: number = 0;
 
     /**
      * Returns a TokenCursor into the document.
@@ -85,17 +85,18 @@ export class ReplConsole {
      * @param col the column to position the cursor at. 
      * @param previous if true, position the cursor at the previous token.
      */
-    public getTokenCursor([row, col]: [number, number] = this.model.getRowCol(this.cursorEnd), previous: boolean = false) {
+    public getTokenCursor(offset: number = this.selectionEnd, previous: boolean = false) {
+        let [row, col] = this.model.getRowCol(offset);
         let line = this.model.lines[row]
         let lastIndex = 0;
         if(line) {
             for(let i=0; i<line.tokens.length; i++) {
                 let tk = line.tokens[i];
                 if(previous ? tk.offset > col : tk.offset > col)
-                    return new TokenCursor(this.model, row, previous ? Math.max(0, lastIndex-1) : lastIndex);
+                    return new LispTokenCursor(this.model, row, previous ? Math.max(0, lastIndex-1) : lastIndex);
                 lastIndex = i;
             }
-            return new TokenCursor(this.model, row, line.tokens.length-1);
+            return new LispTokenCursor(this.model, row, line.tokens.length-1);
         }
     }
 
@@ -125,16 +126,16 @@ export class ReplConsole {
      */
     insertString(text: string) {
         this.withUndo(() => {
-            if(this.cursorStart != this.cursorEnd) {
+            if(this.selectionStart != this.selectionEnd) {
                 this.deleteSelection();
             }
-            let [cs, ce] = [this.cursorStart, this.cursorEnd]
-            this.cursorEnd += this.model.insertString(this.cursorEnd, text, [cs, ce], [cs+text.length, cs+text.length]);
-            this.cursorStart = this.cursorEnd;
+            let [cs, ce] = [this.selectionStart, this.selectionEnd]
+            this.selectionEnd += this.model.insertString(this.selectionEnd, text, [cs, ce], [cs+text.length, cs+text.length]);
+            this.selectionStart = this.selectionEnd;
 
             this.updateState();
             
-            this.caretX = this.model.getRowCol(this.cursorEnd)[1];
+            this.caretX = this.model.getRowCol(this.selectionEnd)[1];
         });
     }
 
@@ -144,18 +145,18 @@ export class ReplConsole {
      * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
      */
     caretLeft(clear: boolean = true) {
-        if(clear && this.cursorStart != this.cursorEnd) {
-            if(this.cursorStart < this.cursorEnd)
-                this.cursorEnd = this.cursorStart;
+        if(clear && this.selectionStart != this.selectionEnd) {
+            if(this.selectionStart < this.selectionEnd)
+                this.selectionEnd = this.selectionStart;
             else
-                this.cursorStart = this.cursorEnd;
+                this.selectionStart = this.selectionEnd;
         } else {
-            this.cursorEnd--;
+            this.selectionEnd--;
             if(clear)
-                this.cursorStart = this.cursorEnd;
+                this.selectionStart = this.selectionEnd;
         }
         this.updateState();
-        this.caretX = this.model.getRowCol(this.cursorEnd)[1];
+        this.caretX = this.model.getRowCol(this.selectionEnd)[1];
     }
 
     /**
@@ -164,18 +165,18 @@ export class ReplConsole {
      * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
      */
     caretRight(clear: boolean = true) {
-        if(clear && this.cursorStart != this.cursorEnd) {
-            if(this.cursorStart > this.cursorEnd)
-                this.cursorEnd = this.cursorStart;
+        if(clear && this.selectionStart != this.selectionEnd) {
+            if(this.selectionStart > this.selectionEnd)
+                this.selectionEnd = this.selectionStart;
             else
-                this.cursorStart = this.cursorEnd;
+                this.selectionStart = this.selectionEnd;
         } else {
-            this.cursorEnd++
+            this.selectionEnd++
             if(clear)
-                this.cursorStart = this.cursorEnd;
+                this.selectionStart = this.selectionEnd;
         }
         this.updateState();
-        this.caretX = this.model.getRowCol(this.cursorEnd)[1];
+        this.caretX = this.model.getRowCol(this.selectionEnd)[1];
     }
 
     /**
@@ -184,11 +185,11 @@ export class ReplConsole {
      * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
      */
     caretHomeAll(clear: boolean = true) {
-        this.cursorEnd = 0;
+        this.selectionEnd = 0;
         if(clear)
-            this.cursorStart = this.cursorEnd;
+            this.selectionStart = this.selectionEnd;
         this.updateState();
-        this.caretX = this.model.getRowCol(this.cursorEnd)[1];
+        this.caretX = this.model.getRowCol(this.selectionEnd)[1];
     }
 
     /**
@@ -197,11 +198,11 @@ export class ReplConsole {
      * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
      */
     caretEndAll(clear: boolean = true) {
-        this.cursorEnd = this.model.maxOffset;
+        this.selectionEnd = this.model.maxOffset;
         if(clear)
-            this.cursorStart = this.cursorEnd;
+            this.selectionStart = this.selectionEnd;
         this.updateState();
-        this.caretX = this.model.getRowCol(this.cursorEnd)[1];
+        this.caretX = this.model.getRowCol(this.selectionEnd)[1];
     }
 
     /**
@@ -210,12 +211,12 @@ export class ReplConsole {
      * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
      */
     caretHome(clear: boolean = true) {
-        let [row, col] = this.model.getRowCol(this.cursorEnd);
-        this.cursorEnd = this.cursorEnd-col;
+        let [row, col] = this.model.getRowCol(this.selectionEnd);
+        this.selectionEnd = this.selectionEnd-col;
         if(clear)
-            this.cursorStart = this.cursorEnd;
+            this.selectionStart = this.selectionEnd;
         this.updateState();
-        this.caretX = this.model.getRowCol(this.cursorEnd)[1];
+        this.caretX = this.model.getRowCol(this.selectionEnd)[1];
     }
 
     /**
@@ -224,12 +225,12 @@ export class ReplConsole {
      * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
      */
     caretEnd(clear: boolean = true) {
-        let [row, col] = this.model.getRowCol(this.cursorEnd);
-        this.cursorEnd = this.cursorEnd-col + this.model.lines[row].text.length;
+        let [row, col] = this.model.getRowCol(this.selectionEnd);
+        this.selectionEnd = this.selectionEnd-col + this.model.lines[row].text.length;
         if(clear)
-            this.cursorStart = this.cursorEnd;
+            this.selectionStart = this.selectionEnd;
         this.updateState();
-        this.caretX = this.model.getRowCol(this.cursorEnd)[1];
+        this.caretX = this.model.getRowCol(this.selectionEnd)[1];
     }
 
     /**
@@ -238,15 +239,15 @@ export class ReplConsole {
      * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
      */
     caretUp(clear: boolean = true) {
-        let [row, col] = this.model.getRowCol(this.cursorEnd);
+        let [row, col] = this.model.getRowCol(this.selectionEnd);
         if(row > 0) {
             let len = this.model.lines[row-1].text.length;
-            this.cursorEnd = this.model.getOffsetForLine(row-1)+Math.min(this.caretX, len);
+            this.selectionEnd = this.model.getOffsetForLine(row-1)+Math.min(this.caretX, len);
         } else {
-            this.cursorEnd = 0;
+            this.selectionEnd = 0;
         }
         if(clear)
-            this.cursorStart = this.cursorEnd;
+            this.selectionStart = this.selectionEnd;
         this.updateState();
     }
 
@@ -256,15 +257,15 @@ export class ReplConsole {
      * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
      */
     caretDown(clear: boolean = true) {
-        let [row, col] = this.model.getRowCol(this.cursorEnd);
+        let [row, col] = this.model.getRowCol(this.selectionEnd);
         if(row < this.model.lines.length-1) {
             let len = this.model.lines[row+1].text.length;
-            this.cursorEnd = this.model.getOffsetForLine(row+1)+Math.min(this.caretX, len);
+            this.selectionEnd = this.model.getOffsetForLine(row+1)+Math.min(this.caretX, len);
         } else {
-            this.cursorEnd = this.model.maxOffset;
+            this.selectionEnd = this.model.maxOffset;
         }
         if(clear)
-            this.cursorStart = this.cursorEnd;
+            this.selectionStart = this.selectionEnd;
         this.updateState();
     }
     
@@ -275,9 +276,9 @@ export class ReplConsole {
      */
     private deleteSelection() {
         this.withUndo(() => {
-            if(this.cursorStart != this.cursorEnd) {
-                this.model.deleteRange(Math.min(this.cursorStart, this.cursorEnd), Math.max(this.cursorStart, this.cursorEnd)-Math.min(this.cursorStart, this.cursorEnd));
-                this.cursorStart = this.cursorEnd = Math.min(this.cursorStart, this.cursorEnd);
+            if(this.selectionStart != this.selectionEnd) {
+                this.model.deleteRange(Math.min(this.selectionStart, this.selectionEnd), Math.max(this.selectionStart, this.selectionEnd)-Math.min(this.selectionStart, this.selectionEnd));
+                this.selectionStart = this.selectionEnd = Math.min(this.selectionStart, this.selectionEnd);
             }
         })
     }
@@ -289,17 +290,17 @@ export class ReplConsole {
      */
     backspace() {
         this.withUndo(() => {
-            if(this.cursorStart != this.cursorEnd) {
+            if(this.selectionStart != this.selectionEnd) {
                 this.deleteSelection();
             } else {
-                if(this.cursorEnd > 0) {
-                    this.model.deleteRange(this.cursorEnd-1, 1, [this.cursorStart, this.cursorEnd], [this.cursorEnd-1, this.cursorEnd-1]);
-                    this.cursorEnd--;
+                if(this.selectionEnd > 0) {
+                    this.model.deleteRange(this.selectionEnd-1, 1, [this.selectionStart, this.selectionEnd], [this.selectionEnd-1, this.selectionEnd-1]);
+                    this.selectionEnd--;
                 }
-                this.cursorStart = this.cursorEnd;
+                this.selectionStart = this.selectionEnd;
             }
             this.updateState()
-            this.caretX = this.model.getRowCol(this.cursorEnd)[1];
+            this.caretX = this.model.getRowCol(this.selectionEnd)[1];
         });
     }
 
@@ -310,13 +311,13 @@ export class ReplConsole {
      */
     delete() {
         this.withUndo(() => {
-            if(this.cursorStart != this.cursorEnd) {
+            if(this.selectionStart != this.selectionEnd) {
                 this.deleteSelection();
             } else {
-                this.model.deleteRange(this.cursorEnd, 1);
-                this.cursorStart = this.cursorEnd;
+                this.model.deleteRange(this.selectionEnd, 1);
+                this.selectionStart = this.selectionEnd;
             }
-            this.caretX = this.model.getRowCol(this.cursorEnd)[1];
+            this.caretX = this.model.getRowCol(this.selectionEnd)[1];
             this.updateState()
         });
     }
@@ -464,18 +465,18 @@ export class ReplConsole {
         this.model.changedLines.clear();
 
         // reposition the caret
-        let [row, col] = this.model.getRowCol(this.cursorEnd);
+        let [row, col] = this.model.getRowCol(this.selectionEnd);
         this.inputLines[row].appendChild(this.caret);
         this.caret.style.left = measureText(this.model.lines[row].text.substr(0, col)) + "px";
 
-        let startLine = this.model.getRowCol(Math.min(this.lastCursorStart, this.lastCursorEnd, this.cursorStart, this.cursorEnd));
-        let endLine = this.model.getRowCol(Math.max(this.lastCursorStart, this.lastCursorEnd, this.cursorStart, this.cursorEnd));
+        let startLine = this.model.getRowCol(Math.min(this.lastSelectionStart, this.lastSelectionEnd, this.selectionStart, this.selectionEnd));
+        let endLine = this.model.getRowCol(Math.max(this.lastSelectionStart, this.lastSelectionEnd, this.selectionStart, this.selectionEnd));
 
-        let cs = this.model.getRowCol(Math.min(this.cursorStart, this.cursorEnd));
-        let ce = this.model.getRowCol(Math.max(this.cursorStart, this.cursorEnd));
+        let cs = this.model.getRowCol(Math.min(this.selectionStart, this.selectionEnd));
+        let ce = this.model.getRowCol(Math.max(this.selectionStart, this.selectionEnd));
 
-        let lcs = this.model.getRowCol(Math.min(this.lastCursorStart, this.lastCursorEnd));
-        let lce = this.model.getRowCol(Math.max(this.lastCursorStart, this.lastCursorEnd));
+        let lcs = this.model.getRowCol(Math.min(this.lastSelectionStart, this.lastSelectionEnd));
+        let lce = this.model.getRowCol(Math.max(this.lastSelectionStart, this.lastSelectionEnd));
 
         // update the selection
         for(let line = startLine[0]; line<=endLine[0]; line++) {
@@ -519,8 +520,8 @@ export class ReplConsole {
             }
         }
 
-        this.lastCursorStart = this.cursorStart;
-        this.lastCursorEnd = this.cursorEnd;
+        this.lastSelectionStart = this.selectionStart;
+        this.lastSelectionEnd = this.selectionEnd;
 
         this.updateParenMatches()
     }
@@ -547,8 +548,8 @@ export class ReplConsole {
     }
 
     private mouseDrag = (e: MouseEvent) => {
-        this.cursorEnd = this.pageToOffset(e.pageX, e.pageY)
-        this.caretX = this.model.getRowCol(this.cursorEnd)[1];
+        this.selectionEnd = this.pageToOffset(e.pageX, e.pageY)
+        this.caretX = this.model.getRowCol(this.selectionEnd)[1];
         this.updateState();
     }
 
@@ -560,8 +561,8 @@ export class ReplConsole {
     constructor(public mainElem: HTMLDivElement) {
         this.mainElem.addEventListener("mousedown", e => {
             e.preventDefault();
-            this.cursorStart = this.cursorEnd = this.pageToOffset(e.pageX, e.pageY)
-            this.caretX = this.model.getRowCol(this.cursorEnd)[1];
+            this.selectionStart = this.selectionEnd = this.pageToOffset(e.pageX, e.pageY)
+            this.caretX = this.model.getRowCol(this.selectionEnd)[1];
             this.updateState();
 
             window.addEventListener("mousemove", this.mouseDrag)
