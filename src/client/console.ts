@@ -426,6 +426,14 @@ export class ReplConsole {
     updateState() {
         this.clearParenMatches();
         this.model.flushChanges()
+        // remove any deleted lines
+        for(let [start, count] of this.model.deletedLines) {
+            for(let j=0; j<count; j++)
+                this.mainElem.removeChild(this.inputLines[start+j]);
+            this.inputLines.splice(start, count);
+        }
+        this.model.deletedLines.clear();
+
         // insert any new lines
         for(let [start, count] of this.model.insertedLines) {
             for(let j=0; j<count; j++) {
@@ -439,14 +447,6 @@ export class ReplConsole {
             }
         }
         this.model.insertedLines.clear();
-
-        // remove any deleted lines
-        for(let [start, count] of this.model.deletedLines) {
-            for(let j=0; j<count; j++)
-                this.mainElem.removeChild(this.inputLines[start+j]);
-            this.inputLines.splice(start, count);
-        }
-        this.model.deletedLines.clear();
 
         // update changed lines
         for(let line of this.model.changedLines) {

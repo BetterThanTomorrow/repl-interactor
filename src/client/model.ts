@@ -104,7 +104,6 @@ export class LineInputModel {
             let nextIdx = this.dirtyLines.shift();
             if(seen.has(nextIdx))
                 continue; // already processed.
-            seen.add(nextIdx);
             let prevState = this.getStateForLine(nextIdx);
             do {
                 seen.add(nextIdx);
@@ -173,6 +172,51 @@ export class LineInputModel {
         return line == 0 ? { inString: false, } : { ... this.lines[line-1].endState };
     }
 
+    
+    changeRange(start: number, end: number, text: string) {
+        let [startLine, startCol] = this.getRowCol(start);
+        let [endLine, endCol] = this.getRowCol(end);
+        // extract the lines we will replace
+        let replaceLines = text.split(/\r\n|\n/);
+
+        // the left side of the line unaffected by the edit.
+        let left = this.lines[startLine].text.substr(0, startCol);
+
+        // the right side of the line unaffected by the edit.
+        let right = this.lines[endLine].text.substr(endCol);
+
+        // we've nuked these lines, so update the dirty line array to correct the indices and delete affected ranges.
+        this.removeDirty(startLine, endLine, replaceLines.length-1);
+
+        let items: TextLine[] = [];
+        
+        // initialize the lexer state - the first line is definitely not in a string, otherwise copy the
+        // end state of the previous line before the edit
+        let state = this.getStateForLine(startLine)
+
+        if(startLine != endLine)
+            this.deletedLines.add([startLine, endLine-startLine])
+
+        if(replaceLines.length == 1) {
+            // trivial single line edit
+            items.push(new TextLine(left + replaceLines[0] + right, state));
+            this.changedLines.add(startLine);
+        } else {
+            // multi line edit.
+            items.push(new TextLine(left + replaceLines[0], state));
+            for(let i=1; i<replaceLines.length-1; i++)
+                items.push(new TextLine(replaceLines[i], scanner.state));
+            items.push(new TextLine(replaceLines[replaceLines.length-1] + right, scanner.state))
+            this.insertedLines.add([startLine, replaceLines.length-1])
+            for(let i=1; i<items.length; i++)
+                this.changedLines.add(startLine+i);
+        }
+
+        // now splice in our edited lines
+        this.lines.splice(startLine, endLine-startLine+1, ...items);
+        this.markDirty(startLine);
+    }
+
     /**
      * Inserts a string at the given position in the document.
      * 
@@ -184,35 +228,8 @@ export class LineInputModel {
      * @param oldCursor the [row,col] of the cursor at the start of the operation
      */
     insertString(offset: number, text: string, oldCursor?: [number, number],): number {
-        let [row, col] = this.getRowCol(offset);
-        let lines = text.split(/\r\n|\n/);
-        let count = 0;
-        if(lines.length == 1) {
-            this.lines[row].text = this.lines[row].text.substring(0, col) + text + this.lines[row].text.substring(col);
-            this.markDirty(row);
-            count += text.length;
-        } else {
-            let rhs = this.lines[row].text.substring(col);
-            this.lines[row].text = this.lines[row].text.substring(0, col) + lines[0];
-            this.markDirty(row);
-            let newItems = [];
-            for(let i=1; i<lines.length-1; i++) {
-                newItems.push(new TextLine(lines[i], this.getStateForLine(0)));
-            }
-            newItems.push(new TextLine(lines[lines.length-1]+rhs, this.getStateForLine(0)));
-            for(let i=0; i<lines.length; i++)
-                count+=lines[i].length+1;
-            this.insertedLines.add([row, lines.length-1]);
-            this.lines.splice(row+1, 0, ...newItems);
-            count--;
-        }
-        for(let i=0; i<lines.length; i++)
-            this.changedLines.add(row+i);
-
-        if(this.recordingUndo)
-            this.undoManager.addUndoStep(new EditorInsertUndoStep("Insert", offset, text, oldCursor, [oldCursor[1]+offset, oldCursor[1]+offset]))
-
-        return count;
+        this.changeRange(offset, offset, text);
+        return text.length;
     }
 
     /**
@@ -225,27 +242,7 @@ export class LineInputModel {
      * @param newCursor the cursor at the end of the operation
      */
     deleteRange(offset: number, count: number, oldCursor?: [number, number], newCursor?: [number, number]) {
-        this.removeDirty(this.getRowCol(offset)[0], this.getRowCol(offset+count)[0], 0);
-
-        let [row, col] = count > 0 ? this.getRowCol(offset) : this.getRowCol(offset+count);
-        let [endRow, endCol] = count > 0 ? this.getRowCol(offset+count) : this.getRowCol(offset);
-
-        let deleted = this.getText(offset, offset+count)
-        this.markDirty(row);
-
-        if(endRow != row) {
-            let left = this.lines[row].text.substring(0, col);
-            let right = this.lines[endRow].text.substring(endCol);
-            this.lines[row].text = left + right;
-            this.lines.splice(row+1, endRow-row);
-            this.changedLines.add(row);
-            this.deletedLines.add([row+1, endRow-row])
-        } else {
-            this.lines[row].text = this.lines[row].text.substring(0, col) + this.lines[row].text.substring(col+count);
-            this.changedLines.add(row);
-        }
-        if(this.recordingUndo)
-            this.undoManager.addUndoStep(new EditorDeleteUndoStep("Delete", offset, deleted, oldCursor, newCursor))
+        this.changeRange(offset, offset+count, "");
     }
 
     /** Return the offset of the last character in this model. */
