@@ -1,4 +1,5 @@
 import { ReplConsole } from "./console";
+import { validPair } from "./clojure-lexer";
 
 export function wrapSexpr(doc: ReplConsole, open: string, close: string, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
     let cursor = doc.getTokenCursor(end);
@@ -28,11 +29,32 @@ export function splitSexp(doc: ReplConsole, start: number = doc.selectionEnd) {
     }
 }
 
+export function joinSexp(doc: ReplConsole, start: number = doc.selectionEnd) {
+    let cursor = doc.getTokenCursor(start);
+    cursor.backwardWhitespace();
+    let open = cursor.getPrevToken();
+    let beginning = cursor.offset;
+    if(open.type == "close") {
+        cursor.forwardWhitespace();
+        let close = cursor.getToken();
+        let end = cursor.offset;
+        if(close.type == "open" && validPair(open.raw, close.raw)) {
+            doc.model.changeRange(beginning-1, end+1, " ");
+            doc.selectionStart = doc.selectionEnd = beginning;
+        }
+    }
+}
+
 // spliceSexp
+
 // barfSexp
+//   forward
+//   backward
 // slurpSexp
+//   forward
+//   backward
 
-
+// raiseSexp
 /*
 closeAndNewline
 delete

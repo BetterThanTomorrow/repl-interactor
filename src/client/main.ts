@@ -23,6 +23,12 @@ document.getElementById("input").addEventListener("keydown", e => {
                 replMain.updateState();
             })            
             e.preventDefault();
+        } else if(e.key == "J" && e.altKey) {
+            replMain.withUndo(() => {
+                paredit.joinSexp(replMain);
+                replMain.updateState();
+            })            
+            e.preventDefault();
         } else {
             replMain.insertString(e.key);
             e.preventDefault();
@@ -118,6 +124,7 @@ input.addEventListener("input", e => {
         replMain.insertString(input.value)
     }
     input.value = ""
+    e.preventDefault();
 })
 
 document.addEventListener("DOMContentLoaded", () => {

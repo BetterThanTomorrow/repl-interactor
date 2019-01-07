@@ -5,6 +5,27 @@ import { LexicalGrammar, Token as LexerToken } from "./lexer"
  */
 let toplevel = new LexicalGrammar()
 
+
+/** Maps open and close parentheses to their class. */
+export const canonicalParens = {
+    '#?(': '()',
+    '#?@(': '()',
+    '#(': '()',
+    '(': '()',
+    ')': '()',
+    '#{': '{}',
+    '{': '{}',
+    '}': '{}',
+    '[': '[]',
+    ']': '[]'
+}
+
+
+/** Returns true if open and close are compatible parentheses */
+export function validPair(open: string, close: string) {
+    return canonicalParens[open] == canonicalParens[close];
+}
+
 export interface Token extends LexerToken {
     state: ScannerState;
 }

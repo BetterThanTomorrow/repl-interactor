@@ -1,5 +1,5 @@
 import { LineInputModel } from "./model";
-import { Token } from "./clojure-lexer";
+import { Token, validPair } from "./clojure-lexer";
 import { TokenCursor, LispTokenCursor } from "./token-cursor";
 
 /** A cheesy utility canvas, used to measure the length of text. */
@@ -9,25 +9,6 @@ let ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 /** Returns the length of the string. */
 function measureText(str: string) {
     return ctx.measureText(str).width;
-}
-
-/** Maps open and close parentheses to their class. */
-const canonicalParens = {
-    '#?(': '()',
-    '#?@(': '()',
-    '#(': '()',
-    '(': '()',
-    ')': '()',
-    '#{': '{}',
-    '{': '{}',
-    '}': '{}',
-    '[': '[]',
-    ']': '[]'
-}
-
-/** Returns true if open and close are compatible parentheses */
-function validPair(open: string, close: string) {
-    return canonicalParens[open] == canonicalParens[close];
 }
 
 /**
