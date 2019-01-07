@@ -20,10 +20,9 @@
 
 *Code cleanup/tidy/document
 -----------------------------------------
-Change model interface (ugh):
-  Use changeRange instead ala DocMirror
-  
-  support undo/redo again <<<
+*Change model interface (ugh):
+  *Use changeRange instead ala DocMirror
+  *support undo/redo again <<<
 
 -----------------------------------------
 paredit (prepare for backporting to calva)

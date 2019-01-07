@@ -129,7 +129,7 @@ export class ReplConsole {
                 this.deleteSelection();
             }
             let [cs, ce] = [this.cursorStart, this.cursorEnd]
-            this.cursorEnd += this.model.insertString(this.cursorEnd, text, [cs, ce]);
+            this.cursorEnd += this.model.insertString(this.cursorEnd, text, [cs, ce], [cs+text.length, cs+text.length]);
             this.cursorStart = this.cursorEnd;
 
             this.updateState();

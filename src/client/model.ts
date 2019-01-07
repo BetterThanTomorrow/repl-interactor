@@ -174,6 +174,7 @@ export class LineInputModel {
 
     
     changeRange(start: number, end: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) {
+        let deletedText = this.recordingUndo ? this.getText(start, end) : "";
         let [startLine, startCol] = this.getRowCol(start);
         let [endLine, endCol] = this.getRowCol(end);
         // extract the lines we will replace
@@ -215,6 +216,10 @@ export class LineInputModel {
         // now splice in our edited lines
         this.lines.splice(startLine, endLine-startLine+1, ...items);
         this.markDirty(startLine);
+
+        if(this.recordingUndo) {
+            this.undoManager.addUndoStep(new EditorUndoStep("Edit", start, text, deletedText, oldSelection, newSelection))
+        }
     }
 
     /**
@@ -265,13 +270,41 @@ class EditorUndoStep extends UndoStep<ReplConsole> {
     }
 
     undo(c: ReplConsole) {
+        c.model.changeRange(this.start, this.start+this.insertedText.length, this.deletedText);
         if(this.oldSelection)
             [c.cursorStart, c.cursorEnd] = this.oldSelection;
     }
 
     redo(c: ReplConsole) {
+        c.model.changeRange(this.start, this.start+this.deletedText.length, this.insertedText);
         if(this.newSelection)
             [c.cursorStart, c.cursorEnd] = this.newSelection;
+    }
+
+    coalesce(step: EditorUndoStep) {
+        if(this.deletedText === ""  && step.deletedText === "" && this.insertedText !== "" && step.insertedText !== "") {
+            if(this.start + this.insertedText.length == step.start) {
+                this.insertedText += step.insertedText;
+                this.newSelection = step.newSelection;
+                return true;
+            }
+        } else if(this.deletedText !== "" && step.deletedText !== "" && this.insertedText === "" && step.insertedText === "") {
+            // repeated delete key
+            if(this.start == step.start) {
+                this.deletedText += step.deletedText;
+                this.newSelection = step.newSelection;
+                return true;
+            }
+
+            // repeated backspace key
+            if(this.start - step.deletedText.length == step.start) {
+                this.start = step.start;
+                this.deletedText = step.deletedText + this.deletedText;
+                this.newSelection = step.newSelection;
+                return true;
+            }            
+        }
+        return false;
     }
 }
 
@@ -285,11 +318,6 @@ class EditorInsertUndoStep extends EditorUndoStep {
 
     coalesce(step: EditorUndoStep) {
         if(step instanceof EditorInsertUndoStep) {
-            if(this.offset + this.insertedText.length == step.offset) {
-                this.insertedText += step.insertedText;
-                this.newSelection = step.newSelection;
-                return true;
-            }
         }
         return false;
     }
