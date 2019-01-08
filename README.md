@@ -36,8 +36,7 @@ Currently I am still fleshing out the low-level details, it's basically a syntax
 
 ## Why TypeScript?
 
-This project is intended for use first off for Calva, however the goal is to generally be useful for anyone. Using typescript keeps the bundle size down, and makes the code generally more accessible for those wanting to add a REPL to their favorite
-languages.
+This project is intended for use first off for Calva, however the goal is to generally be useful for anyone. Using TypeScript keeps the bundle size down (< 8k gzipped for now), and makes the code generally more accessible for those wanting to add a REPL to their favorite language.
 
 ## Goals
 

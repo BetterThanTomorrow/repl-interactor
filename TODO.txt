@@ -47,7 +47,7 @@ paredit (prepare for backporting to calva)
   *auto close
   *overtype + bring to same line close parens
 
-   auto delete empty list
+   auto delete empty list <<<
 
    navigation commands
 

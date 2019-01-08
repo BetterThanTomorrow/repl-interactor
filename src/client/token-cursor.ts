@@ -35,7 +35,7 @@ export class TokenCursor {
 
     /** Return the offset at the end of the token */
     get offsetEnd() {
-        return this.doc.getOffsetForLine(this.line) + this.getToken().offset + this.getToken().raw.length;
+        return Math.min(this.doc.maxOffset, this.doc.getOffsetForLine(this.line) + this.getToken().offset + this.getToken().raw.length);
     }
 
 
