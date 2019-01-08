@@ -10,21 +10,21 @@ document.getElementById("input").addEventListener("keydown", e => {
         if(e.key == " ")
             replMain.model.undoManager.insertUndoStop();    
 
-        if(e.key == "(") {
+        if(e.key == "(" && !e.altKey) {
             replMain.withUndo(() => {
                 paredit.open(replMain, "()");
                 replMain.repaint();
                 e.preventDefault();
                 return;
             })
-        } else if(e.key == "[") {
+        } else if(e.key == "[" && !e.altKey) {
             replMain.withUndo(() => {
                 paredit.open(replMain, "[]");
                 replMain.repaint();
             })
             e.preventDefault();
             return;
-        } else if(e.key == "{") {
+        } else if(e.key == "{" && !e.altKey) {
             replMain.withUndo(() => {
                 paredit.open(replMain, "{}");
                 replMain.repaint();
