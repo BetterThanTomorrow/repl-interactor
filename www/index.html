@@ -86,10 +86,46 @@
                     opacity: 1;
                 }
             }
+
+            .info-box {
+                position: absolute;
+                right: 0;
+                top: 0;
+                font-size: 12px;
+                font-family: sans-serif;
+            }
+
+            .info-box p {
+                color: #999;
+                margin: 0;
+            }
+
+            .info-box p b {
+                color: #ccf;
+            }
+
+            @media only screen and (max-width: 600px) {
+                .info-box {
+                    display: none;
+                }
+            }
         </style>
         <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
     </head>
     <body>
+        <div class="info-box">
+            <h3>Keys</h3>
+            <p><b>Alt + Shift + (</b> - Wrap round</p>
+            <p><b>Alt + Shift + [</b> - Wrap square</p>
+            <p><b>Alt + Shift + {</b> - Wrap curly</p>
+            <p><b>Alt + 0</b> - Forward slurp sexp</p>
+            <p><b>Alt + 9</b> - Backward slurp sexp</p>
+            <p><b>Ctrl + Shift + ]</b> - Forward barf sexp</p>
+            <p><b>Ctrl + Shify + [</b> - Backward barf sexp</p>
+            <p><b>Alt + S</b> - Split sexp</p>
+            <p><b>Alt + Shift + S</b> - Splice sexp</p>
+            <p><b>Alt + Shift + J</b> - Join sexp</p>
+        </div>
         <input id="input" style="width: 0px; height: 0px; position: fixed; opacity: 0;" autocorrect="off" autocapitalize="none">
         <div id="repl">
         </div>
