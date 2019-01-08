@@ -172,7 +172,15 @@ export function close(doc: ReplConsole, close: string, start: number = doc.selec
         doc.model.changeRange(start, cursor.offsetStart, "");
         doc.selectionStart = doc.selectionEnd = start+1;
     } else {
-        // huh. 
+        // one of two things are possible:
+        if(cursor.forwardList()) {
+            //   we are in a matched list, just jump to the end of it.
+            doc.selectionStart = doc.selectionEnd = cursor.offsetEnd;
+        } else {
+            while(cursor.forwardSexp()) {}
+            doc.model.changeRange(cursor.offsetEnd, cursor.offsetEnd, close)
+            doc.selectionStart = doc.selectionEnd = cursor.offsetEnd+1;
+        }
     }
 }
 

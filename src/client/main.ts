@@ -35,9 +35,9 @@ document.getElementById("input").addEventListener("keydown", e => {
             replMain.withUndo(() => {
                 paredit.close(replMain, ")");
                 replMain.repaint();
-                e.preventDefault();
                 return;
             })
+            e.preventDefault();
         } else if(e.key == "]") {
             replMain.withUndo(() => {
                 paredit.close(replMain, "]");

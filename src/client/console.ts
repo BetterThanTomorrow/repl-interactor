@@ -357,22 +357,27 @@ export class ReplConsole {
     updateParenMatches() {
         let cursor = this.getTokenCursor();
 
-        if(cursor.getPrevToken().type == "close") {
-            this.closeParen = cursor.clone().previous();
-            cursor.previous();
+        if(cursor.getToken().type == "close") {
+            this.closeParen = cursor.clone()
             while(cursor.backwardSexp());
             if(cursor.getPrevToken().type == "open") {
                 this.openParen = cursor.previous();
             }
-            this.matchingParen = validPair(this.openParen.getToken().raw, this.closeParen.getToken().raw);
+            if(this.closeParen && this.openParen)
+                this.matchingParen = validPair(this.openParen.getToken().raw, this.closeParen.getToken().raw);
+            else
+                this.matchingParen = false;
         } else if(cursor.getToken().type == "open") {
             this.openParen = cursor.clone();
             cursor.next();
             while(cursor.forwardSexp());
             if(cursor.getToken().type == "close") {
                 this.closeParen = cursor;
-            }            
-            this.matchingParen = validPair(this.openParen.getToken().raw, this.closeParen.getToken().raw);
+            }
+            if(this.closeParen && this.openParen)
+                this.matchingParen = validPair(this.openParen.getToken().raw, this.closeParen.getToken().raw);
+            else
+                this.matchingParen = false;
         }
 
         let cp = this.getElementForToken(this.closeParen);

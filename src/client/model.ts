@@ -134,6 +134,8 @@ export class LineInputModel {
      * @param end the end offset in the text range
      */
     getText(start: number, end: number): string {
+        if(start == end)
+            return "";
         let st = this.getRowCol(Math.min(start, end));
         let en = this.getRowCol(Math.max(start, end));
 
