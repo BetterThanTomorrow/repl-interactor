@@ -139,13 +139,13 @@ export class LineInputModel {
 
         let lines = [];
         if(st[0] == en[0])
-            lines[0] = this.lines[st[0]].text.substring(Math.min(st[1], en[1]), Math.max(st[1], en[1]))
+            lines[0] = this.lines[st[0]].text.substring(st[1])
         else
-            lines[0] = this.lines[st[0]].text.substring(Math.min(st[1], en[1]))
+            lines[0] = this.lines[st[0]].text.substring(st[1])
         for(let i=st[0]+1; i<en[0]; i++)
             lines.push(this.lines[i].text);
         if(st[0] != en[0])
-            lines.push(this.lines[en[0]].text.substring(0, Math.max(st[1], en[1])));
+            lines.push(this.lines[en[0]].text.substring(0, en[1]));
         return lines.join('\n');
     }
 

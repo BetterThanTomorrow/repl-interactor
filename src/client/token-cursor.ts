@@ -121,12 +121,14 @@ export class LispTokenCursor extends TokenCursor {
     /**
      * Moves this token past any whitespace or comment.
      */
-    forwardWhitespace() {
+    forwardWhitespace(includComments = false) {
         while(!this.atEnd()) {
             switch(this.getToken().type) {
+                case "comment":
+                    if(!includComments)
+                        return;
                 case "eol":
                 case "ws":
-                case "comment":
                     this.next();
                     continue;
                 default:
@@ -138,12 +140,14 @@ export class LispTokenCursor extends TokenCursor {
     /**
      * Moves this token back past any whitespace or comment.
      */
-    backwardWhitespace() {
+    backwardWhitespace(includeComments = false) {
         while(!this.atStart()) {
             switch(this.getPrevToken().type) {
+                case "comment":
+                    if(!includeComments)
+                        return;
                 case "eol":
                 case "ws":
-                case "comment":
                     this.previous();
                     continue;
                 default:

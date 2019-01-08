@@ -10,7 +10,49 @@ document.getElementById("input").addEventListener("keydown", e => {
         if(e.key == " ")
             replMain.model.undoManager.insertUndoStop();    
 
-        if(e.key == '0' && e.altKey) {
+        if(e.key == "(") {
+            replMain.withUndo(() => {
+                paredit.open(replMain, "()");
+                replMain.repaint();
+                e.preventDefault();
+                return;
+            })
+        } else if(e.key == "[") {
+            replMain.withUndo(() => {
+                paredit.open(replMain, "[]");
+                replMain.repaint();
+            })
+            e.preventDefault();
+            return;
+        } else if(e.key == "{") {
+            replMain.withUndo(() => {
+                paredit.open(replMain, "{}");
+                replMain.repaint();
+            })
+            e.preventDefault();
+            return;            
+        } else if(e.key == ")") {
+            replMain.withUndo(() => {
+                paredit.close(replMain, ")");
+                replMain.repaint();
+                e.preventDefault();
+                return;
+            })
+        } else if(e.key == "]") {
+            replMain.withUndo(() => {
+                paredit.close(replMain, "]");
+                replMain.repaint();
+            })
+            e.preventDefault();
+            return;
+        } else if(e.key == "}") {
+            replMain.withUndo(() => {
+                paredit.close(replMain, "}");
+                replMain.repaint();
+            })
+            e.preventDefault();
+            return;            
+        } else if(e.key == '0' && e.altKey) {
             replMain.withUndo(() => {
                 paredit.forwardSlurpSexp(replMain);
                 replMain.repaint();

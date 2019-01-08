@@ -160,7 +160,21 @@ export function backwardBarfSexp(doc: ReplConsole, start: number = doc.selection
     }
 }
 
-// barfSexp
-//   backward
+export function open(doc: ReplConsole, pair: string, start: number = doc.selectionEnd) {
+    doc.insertString(pair);
+    doc.selectionStart = doc.selectionEnd = start+1;
+}
+
+export function close(doc: ReplConsole, close: string, start: number = doc.selectionEnd) {
+    let cursor = doc.getTokenCursor();
+    cursor.forwardWhitespace(false);
+    if(cursor.getToken().raw == close) {
+        doc.model.changeRange(start, cursor.offsetStart, "");
+        doc.selectionStart = doc.selectionEnd = start+1;
+    } else {
+        // huh. 
+    }
+}
 
 // raiseSexp
+// convolute
