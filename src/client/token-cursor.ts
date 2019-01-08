@@ -28,10 +28,16 @@ export class TokenCursor {
         return [this.line, this.getToken().offset];
     }
 
-    /** Return the offset */
-    get offset() {
+    /** Return the offset at the start of the token */
+    get offsetStart() {
         return this.doc.getOffsetForLine(this.line) +  this.getToken().offset;
     }
+
+    /** Return the offset at the end of the token */
+    get offsetEnd() {
+        return this.doc.getOffsetForLine(this.line) + this.getToken().offset + this.getToken().raw.length;
+    }
+
 
     /** True if we are at the start of the document */
     atStart() {
@@ -257,12 +263,10 @@ export class LispTokenCursor extends TokenCursor {
      */
     forwardList(): boolean {
         let cursor = this.clone();
-        while(cursor.forwardSexp()) {
-            if(cursor.getToken().type == "close") {
-                this.set(cursor);
-                return true;
-            }
-            this.next()
+        while(cursor.forwardSexp()) { }
+        if(cursor.getToken().type == "close") {
+            this.set(cursor);
+            return true;
         }
         return false;
     }
@@ -272,11 +276,10 @@ export class LispTokenCursor extends TokenCursor {
      */
     backwardList(): boolean {
         let cursor = this.clone();
-        while(cursor.backwardSexp()) {
-            if(cursor.getPrevToken().type == "open") {
-                this.set(cursor);
-                return true;
-            }
+        while(cursor.backwardSexp()) { }
+        if(cursor.getPrevToken().type == "open") {
+            this.set(cursor);
+            return true;
         }
         return false;
     }
@@ -289,12 +292,12 @@ export class LispTokenCursor extends TokenCursor {
         let cursor = this.clone();
         do {
             cursor.forwardWhitespace();
-            if(cursor.getToken().type == "open") {
-                cursor.next();
-                this.set(cursor);
-                return true;
-            }
         } while(cursor.forwardSexp())
+        if(cursor.getToken().type == "open") {
+            cursor.next();
+            this.set(cursor);
+            return true;
+        }
         return false;
     }
 
@@ -306,12 +309,12 @@ export class LispTokenCursor extends TokenCursor {
         let cursor = this.clone();
         do {
             cursor.forwardWhitespace();
-            if(cursor.getToken().type == "close") {
-                cursor.next();
-                this.set(cursor);
-                return true;
-            }
         } while(cursor.forwardSexp())
+        if(cursor.getToken().type == "close") {
+            cursor.next();
+            this.set(cursor);
+            return true;
+        }
         return false;
     }
 
@@ -323,12 +326,12 @@ export class LispTokenCursor extends TokenCursor {
         let cursor = this.clone();
         do {
             cursor.backwardWhitespace();
-            if(cursor.getPrevToken().type == "open") {
-                cursor.previous();
-                this.set(cursor);
-                return true;
-            }
         } while(cursor.backwardSexp())
+        if(cursor.getPrevToken().type == "open") {
+            cursor.previous();
+            this.set(cursor);
+            return true;
+        }
         return false;
     }
 

@@ -27,14 +27,32 @@
 -----------------------------------------
 paredit (prepare for backporting to calva)
   *wrapAround
+    *use selection
   *splitSexp
   *joinSexp
 
-   spliceSexp
-   slurpSexp
-   barfSexp
+  *spliceSexp
+    *spliceSexp
+    *spliceSexpKillingBackward
+    *spliceSexpKillingForward
+
+  *forwardSlurpSexp
+  *backwardSlurpSexp
+
+  *forwardBarfSexp
+  *backwardBarfSexp
 
    group undos for paredit.
 
    auto close, auto delete empty list.
    overtype + bring to same line close parens
+
+   navigation commands
+
+   grow/shrink selection
+
+   raise sexp
+
+   convolute
+============================================
+Firefox/Edge cursor positioning is hosed, in potentially the same way.

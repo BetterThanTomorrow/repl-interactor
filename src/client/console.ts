@@ -114,7 +114,7 @@ export class ReplConsole {
             this.selectionEnd += this.model.insertString(this.selectionEnd, text, [cs, ce], [cs+text.length, cs+text.length]);
             this.selectionStart = this.selectionEnd;
 
-            this.updateState();
+            this.repaint();
             
             this.caretX = this.model.getRowCol(this.selectionEnd)[1];
         });
@@ -136,7 +136,7 @@ export class ReplConsole {
             if(clear)
                 this.selectionStart = this.selectionEnd;
         }
-        this.updateState();
+        this.repaint();
         this.caretX = this.model.getRowCol(this.selectionEnd)[1];
     }
 
@@ -156,7 +156,7 @@ export class ReplConsole {
             if(clear)
                 this.selectionStart = this.selectionEnd;
         }
-        this.updateState();
+        this.repaint();
         this.caretX = this.model.getRowCol(this.selectionEnd)[1];
     }
 
@@ -169,7 +169,7 @@ export class ReplConsole {
         this.selectionEnd = 0;
         if(clear)
             this.selectionStart = this.selectionEnd;
-        this.updateState();
+        this.repaint();
         this.caretX = this.model.getRowCol(this.selectionEnd)[1];
     }
 
@@ -182,7 +182,7 @@ export class ReplConsole {
         this.selectionEnd = this.model.maxOffset;
         if(clear)
             this.selectionStart = this.selectionEnd;
-        this.updateState();
+        this.repaint();
         this.caretX = this.model.getRowCol(this.selectionEnd)[1];
     }
 
@@ -196,7 +196,7 @@ export class ReplConsole {
         this.selectionEnd = this.selectionEnd-col;
         if(clear)
             this.selectionStart = this.selectionEnd;
-        this.updateState();
+        this.repaint();
         this.caretX = this.model.getRowCol(this.selectionEnd)[1];
     }
 
@@ -210,7 +210,7 @@ export class ReplConsole {
         this.selectionEnd = this.selectionEnd-col + this.model.lines[row].text.length;
         if(clear)
             this.selectionStart = this.selectionEnd;
-        this.updateState();
+        this.repaint();
         this.caretX = this.model.getRowCol(this.selectionEnd)[1];
     }
 
@@ -229,7 +229,7 @@ export class ReplConsole {
         }
         if(clear)
             this.selectionStart = this.selectionEnd;
-        this.updateState();
+        this.repaint();
     }
 
     /**
@@ -247,7 +247,7 @@ export class ReplConsole {
         }
         if(clear)
             this.selectionStart = this.selectionEnd;
-        this.updateState();
+        this.repaint();
     }
     
     /**
@@ -280,7 +280,7 @@ export class ReplConsole {
                 }
                 this.selectionStart = this.selectionEnd;
             }
-            this.updateState()
+            this.repaint()
             this.caretX = this.model.getRowCol(this.selectionEnd)[1];
         });
     }
@@ -299,7 +299,7 @@ export class ReplConsole {
                 this.selectionStart = this.selectionEnd;
             }
             this.caretX = this.model.getRowCol(this.selectionEnd)[1];
-            this.updateState()
+            this.repaint()
         });
     }
 
@@ -405,7 +405,7 @@ export class ReplConsole {
      * Update the DOM for the editor. After a change in the model or local editor information (e.g. cursor position), we apply the changes,
      * attempting to minimize the work.
      */
-    updateState() {
+    repaint() {
         this.clearParenMatches();
         this.model.flushChanges()
         // remove any deleted lines
@@ -531,7 +531,7 @@ export class ReplConsole {
     private mouseDrag = (e: MouseEvent) => {
         this.selectionEnd = this.pageToOffset(e.pageX, e.pageY)
         this.caretX = this.model.getRowCol(this.selectionEnd)[1];
-        this.updateState();
+        this.repaint();
     }
 
     private mouseUp = (e: MouseEvent) => {
@@ -544,7 +544,7 @@ export class ReplConsole {
             e.preventDefault();
             this.selectionStart = this.selectionEnd = this.pageToOffset(e.pageX, e.pageY)
             this.caretX = this.model.getRowCol(this.selectionEnd)[1];
-            this.updateState();
+            this.repaint();
 
             window.addEventListener("mousemove", this.mouseDrag)
             window.addEventListener("mouseup", this.mouseUp)

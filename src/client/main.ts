@@ -6,39 +6,54 @@ const isMac = navigator.platform.match(/Mac(Intel|PPC|68k)/i); // somewhat optim
  
 document.getElementById("input").addEventListener("keydown", e => {
     let commandKey = isMac ? e.metaKey : e.ctrlKey;
-
     if(e.key.length == 1 && !e.metaKey && !e.ctrlKey) {
         if(e.key == " ")
             replMain.model.undoManager.insertUndoStop();    
 
-        if(e.key == "(" && e.altKey) {
+        if(e.key == '0' && e.altKey) {
+            replMain.withUndo(() => {
+                paredit.forwardSlurpSexp(replMain);
+                replMain.repaint();
+            })
+        } else if(e.key == '9' && e.altKey) {
+            replMain.withUndo(() => {
+                paredit.backwardSlurpSexp(replMain);
+                replMain.repaint();
+            })
+        } else if(e.key == "(" && e.altKey) {
             replMain.withUndo(() => {
                 paredit.wrapSexpr(replMain, "(", ")");
-                replMain.updateState();
+                replMain.repaint();
             })
             e.preventDefault();
         } else if(e.key == "[" && e.altKey) {
             replMain.withUndo(() => {
                 paredit.wrapSexpr(replMain, "[", "]");
-                replMain.updateState();
+                replMain.repaint();
             })
             e.preventDefault();
         } else if(e.key == "{" && e.altKey) {
             replMain.withUndo(() => {
                 paredit.wrapSexpr(replMain, "{", "}");
-                replMain.updateState();
+                replMain.repaint();
             })
             e.preventDefault();
         } else if(e.key == "S" && e.altKey) {
             replMain.withUndo(() => {
                 paredit.splitSexp(replMain);
-                replMain.updateState();
+                replMain.repaint();
+            })            
+            e.preventDefault();
+        } else if(e.key == "s" && e.altKey) {
+            replMain.withUndo(() => {
+                paredit.spliceSexp(replMain);
+                replMain.repaint();
             })            
             e.preventDefault();
         } else if(e.key == "J" && e.altKey) {
             replMain.withUndo(() => {
                 paredit.joinSexp(replMain);
-                replMain.updateState();
+                replMain.repaint();
             })            
             e.preventDefault();
         } else {
@@ -47,20 +62,32 @@ document.getElementById("input").addEventListener("keydown", e => {
         }
     } else if(e.key.length == 1 && commandKey) {
         switch(e.key) {
+            case "}":
+                replMain.withUndo(() => {
+                    paredit.forwardBarfSexp(replMain)
+                    replMain.repaint();
+                })
+                break;
+            case "{":
+                replMain.withUndo(() => {
+                    paredit.backwardBarfSexp(replMain)
+                    replMain.repaint();
+                })
+                break;
             case "a":
                 replMain.selectionStart = 0;
                 replMain.selectionEnd = replMain.model.maxOffset;
-                replMain.updateState();
+                replMain.repaint();
                 e.preventDefault();
                 break;
             case 'z':
                 replMain.model.undoManager.undo(replMain);
-                replMain.updateState()
+                replMain.repaint()
                 e.preventDefault();
                 break;
             case 'Z':
                 replMain.model.undoManager.redo(replMain);
-                replMain.updateState()
+                replMain.repaint()
                 e.preventDefault();
                 break;
         }
@@ -104,11 +131,23 @@ document.getElementById("input").addEventListener("keydown", e => {
                     e.preventDefault();
                     break;
             case 38: // Up
-                replMain.caretUp(!e.shiftKey);
+                if(e.altKey) {
+                    replMain.withUndo(() => {
+                        paredit.spliceSexpKillingBackward(replMain)
+                        replMain.repaint();
+                    });
+                } else
+                    replMain.caretUp(!e.shiftKey);
                 e.preventDefault();
                 break;
             case 40: // Down
-                replMain.caretDown(!e.shiftKey);
+                if(e.altKey) {
+                    replMain.withUndo(() => {
+                        paredit.spliceSexpKillingForward(replMain);
+                        replMain.repaint();    
+                    })
+                } else
+                    replMain.caretDown(!e.shiftKey);
                 e.preventDefault();
                 break;
             case 46: // Delete
