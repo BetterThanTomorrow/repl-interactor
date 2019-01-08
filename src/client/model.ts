@@ -141,7 +141,7 @@ export class LineInputModel {
 
         let lines = [];
         if(st[0] == en[0])
-            lines[0] = this.lines[st[0]].text.substring(st[1])
+            lines[0] = this.lines[st[0]].text.substring(st[1], en[1])
         else
             lines[0] = this.lines[st[0]].text.substring(st[1])
         for(let i=st[0]+1; i<en[0]; i++)
