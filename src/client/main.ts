@@ -52,16 +52,6 @@ document.getElementById("input").addEventListener("keydown", e => {
             })
             e.preventDefault();
             return;            
-        } else if(e.key == '0' && e.altKey) {
-            replMain.withUndo(() => {
-                paredit.forwardSlurpSexp(replMain);
-                replMain.repaint();
-            })
-        } else if(e.key == '9' && e.altKey) {
-            replMain.withUndo(() => {
-                paredit.backwardSlurpSexp(replMain);
-                replMain.repaint();
-            })
         } else if(e.key == "(" && e.altKey) {
             replMain.withUndo(() => {
                 paredit.wrapSexpr(replMain, "(", ")");
@@ -104,18 +94,6 @@ document.getElementById("input").addEventListener("keydown", e => {
         }
     } else if(e.key.length == 1 && commandKey) {
         switch(e.key) {
-            case "}":
-                replMain.withUndo(() => {
-                    paredit.forwardBarfSexp(replMain)
-                    replMain.repaint();
-                })
-                break;
-            case "{":
-                replMain.withUndo(() => {
-                    paredit.backwardBarfSexp(replMain)
-                    replMain.repaint();
-                })
-                break;
             case "a":
                 replMain.selectionStart = 0;
                 replMain.selectionEnd = replMain.model.maxOffset;
@@ -146,12 +124,34 @@ document.getElementById("input").addEventListener("keydown", e => {
                     istr += " "
                 replMain.insertString("\n"+istr);
                 break;
-            case 37: // Left arrow
-                replMain.caretLeft(!e.shiftKey);
+            case 37: // Left arrow            
+                if(e.altKey && e.shiftKey && commandKey) {
+                    replMain.withUndo(() => {
+                        paredit.backwardSlurpSexp(replMain);
+                        replMain.repaint();
+                    })
+                } else if(e.altKey && commandKey) {
+                    replMain.withUndo(() => {
+                        paredit.forwardBarfSexp(replMain);
+                        replMain.repaint();
+                    })
+                } else
+                    replMain.caretLeft(!e.shiftKey);
                 e.preventDefault();
                 break;
             case 39: // Right arrow
-                replMain.caretRight(!e.shiftKey);
+                if(e.altKey && e.shiftKey && commandKey) {
+                    replMain.withUndo(() => {
+                        paredit.forwardSlurpSexp(replMain);
+                        replMain.repaint();
+                    })
+                } else if(e.altKey && commandKey) {
+                    replMain.withUndo(() => {
+                        paredit.backwardBarfSexp(replMain);
+                        replMain.repaint();
+                    })
+                } else
+                    replMain.caretRight(!e.shiftKey);
                 e.preventDefault();
                 break;
             case 8: // Backspace
