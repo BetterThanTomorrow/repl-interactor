@@ -23,12 +23,36 @@ export abstract class UndoStep<T> {
     }
 }
 
+export class UndoStepGroup<T> extends UndoStep<T> {
+    steps: UndoStep<T>[] = [];
+
+    addUndoStep(step: UndoStep<T>) {
+        let prevStep = this.steps.length && this.steps[this.steps.length-1];
+        
+        if(prevStep && !prevStep.undoStop && prevStep.coalesce(step))
+            return;
+        this.steps.push(step);
+    }
+
+    undo(c: T): void {
+        for(let i=this.steps.length-1; i>=0; i--)
+            this.steps[i].undo(c);
+    }
+
+    redo(c: T): void {
+        for(let i=0; i<this.steps.length; i++)
+            this.steps[i].redo(c);
+    }
+ }
+
 /**
  * Handles the undo/redo stacks.
  */
 export class UndoManager<T> {
     private undos: UndoStep<T>[] = [];
     private redos: UndoStep<T>[] = [];
+
+    private groupedUndo: UndoStepGroup<T> | null;
 
     /**
      * Adds the step to the undo stack, and clears the redo stack.
@@ -37,7 +61,9 @@ export class UndoManager<T> {
      * @param step the UndoStep to add.
      */
     addUndoStep(step: UndoStep<T>) {
-        if(this.undos.length) {
+        if(this.groupedUndo) {
+            this.groupedUndo.addUndoStep(step);
+        } else if(this.undos.length) {
             let prevUndo = this.undos[this.undos.length-1];
             if(prevUndo.undoStop) {
                 this.undos.push(step);
@@ -48,6 +74,23 @@ export class UndoManager<T> {
             this.undos.push(step);
         }
         this.redos = [];
+    }
+
+    withUndo(f: () => void) {
+        if(!this.groupedUndo) {
+            this.groupedUndo = new UndoStepGroup<T>();
+            f();
+            let undo = this.groupedUndo;
+            this.groupedUndo = null;
+            switch(undo.steps.length) {
+                case 0: break;
+                case 1: this.addUndoStep(undo.steps[0]); break;
+                default:
+                    this.addUndoStep(undo);
+            }
+        } else {
+            f();
+        }
     }
 
     /** Prevents this undo from becoming coalesced with future undos */

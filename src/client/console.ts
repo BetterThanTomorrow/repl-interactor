@@ -93,7 +93,7 @@ export class ReplConsole {
         let oldUndo = this.model.recordingUndo;
         try {
             this.model.recordingUndo = true;
-            body();
+            this.model.undoManager.withUndo(body)
         } finally {
             this.model.recordingUndo = oldUndo;
         }
