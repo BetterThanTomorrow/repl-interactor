@@ -186,7 +186,7 @@ document.getElementById("input").addEventListener("keydown", e => {
                 if(e.altKey) {
                     replMain.withUndo(() => {
                         paredit.spliceSexpKillingForward(replMain);
-                        replMain.repaint();    
+                        replMain.repaint();
                     })
                 } else
                     replMain.caretDown(!e.shiftKey);

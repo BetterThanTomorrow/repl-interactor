@@ -47,7 +47,9 @@ paredit (prepare for backporting to calva)
   *auto close
   *overtype + bring to same line close parens
 
-   auto delete empty list <<<
+   spliceSexpKilling trashing undo when throwing? <<<
+
+   auto delete empty list
 
    navigation commands
 

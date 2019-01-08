@@ -245,7 +245,7 @@ export class LispTokenCursor extends TokenCursor {
                         this.previous();
                         tk = this.getPrevToken();
                     } while(!this.atStart() && tk.type == "str-inside")
-                    continue;                    
+                    continue;
                 case 'close':
                     delta++;
                     this.previous();

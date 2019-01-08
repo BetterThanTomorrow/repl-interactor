@@ -78,15 +78,19 @@ export class UndoManager<T> {
 
     withUndo(f: () => void) {
         if(!this.groupedUndo) {
-            this.groupedUndo = new UndoStepGroup<T>();
-            f();
-            let undo = this.groupedUndo;
-            this.groupedUndo = null;
-            switch(undo.steps.length) {
-                case 0: break;
-                case 1: this.addUndoStep(undo.steps[0]); break;
-                default:
-                    this.addUndoStep(undo);
+            try {
+                this.groupedUndo = new UndoStepGroup<T>();
+                f();
+                let undo = this.groupedUndo;
+                this.groupedUndo = null;
+                switch(undo.steps.length) {
+                    case 0: break;
+                    case 1: this.addUndoStep(undo.steps[0]); break;
+                    default:
+                        this.addUndoStep(undo);
+                }
+            } finally {
+                this.groupedUndo = null;
             }
         } else {
             f();
