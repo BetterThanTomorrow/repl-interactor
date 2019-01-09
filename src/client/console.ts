@@ -425,12 +425,12 @@ export class ReplConsole {
         for(let [start, count] of this.model.insertedLines) {
             for(let j=0; j<count; j++) {
                 let line = this.makeLine()
-                if(!this.inputLines[start+j+1])
+                if(!this.inputLines[start+j])
                     this.mainElem.append(line);
                 else
-                    this.mainElem.insertBefore(line, this.inputLines[start+j+1]);
+                    this.mainElem.insertBefore(line, this.inputLines[start+j]);
                 
-                this.inputLines.splice(start+j+1, 0, line)
+                this.inputLines.splice(start+j, 0, line)
             }
         }
         this.model.insertedLines.clear();
@@ -527,6 +527,8 @@ export class ReplConsole {
         }
         i--;
 
+        if(i < 0)
+            return 0;
         let offset = this.model.getOffsetForLine(i);
         
         offset += Math.min(Math.floor((pageX-rect.left) / measureText("M")), this.model.lines[i].text.length)

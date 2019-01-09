@@ -67,6 +67,50 @@ export class LineInputModel {
     /** Lines which must be re-lexed. */
     dirtyLines: number[] = [];
 
+    private updateLines(start: number, deleted: number, inserted: number) {
+        let delta = inserted-deleted;
+
+        this.dirtyLines = this.dirtyLines.filter(x => x < start || x >= start+deleted)
+                                          .map(x => x >= start ? x + delta : x);
+
+
+        this.changedLines = new Set(Array.from(this.changedLines).map(x => {
+            if(x > start && x < start + deleted)
+                return null;
+            if(x >= start)
+                return x+delta;
+            return x;
+        }).filter(x => x !== null))
+
+        this.insertedLines = new Set(Array.from(this.insertedLines).map((x):[number, number] => {
+            let [a, b] = x;
+            if(a > start && a < start + deleted)
+                return null;
+            if(a >= start)
+                return [a+delta, b];
+            return [a, b]
+        }).filter(x => x !== null))
+
+        this.deletedLines = new Set(Array.from(this.deletedLines).map((x):[number, number] => {
+            let [a, b] = x;
+            if(a > start && a < start + deleted)
+                return null;
+            if(a >= start)
+                return [a+delta, b];
+            return [a, b]
+        }).filter(x => x !== null))
+    }
+
+    private deleteLines(start: number, count: number) {
+        this.updateLines(start, count, 0);
+        this.deletedLines.add([start, count])
+    }
+
+    private insertLines(start: number, count: number) {
+        this.updateLines(start, 0, count);
+        this.insertedLines.add([start, count])
+    }
+
     /**
      * Mark a line as needing to be re-lexed.
      * 
@@ -75,20 +119,6 @@ export class LineInputModel {
     private markDirty(idx: number) {
         if(idx >= 0 && idx < this.lines.length && this.dirtyLines.indexOf(idx) == -1)
             this.dirtyLines.push(idx);
-    }
-
-    /**
-     * Lines from start-end have been deleted, and there have been inserted new lines at that point.
-     * This twiddles the indices in dirtyLines so they are correct again.
-     * 
-     * @param start the index of the first line that was deleted
-     * @param end the index of the last line that was deleted
-     * @param inserted the number of lines that were inserted at start.
-     */
-    private removeDirty(start: number, end: number, inserted: number) {
-        let delta = end-start + inserted;
-        this.dirtyLines = this.dirtyLines.filter(x => x < start || x > end)
-                                          .map(x => x > start ? x - delta : x);
     }
 
     /**
@@ -198,9 +228,6 @@ export class LineInputModel {
         // the right side of the line unaffected by the edit.
         let right = this.lines[endLine].text.substr(endCol);
 
-        // we've nuked these lines, so update the dirty line array to correct the indices and delete affected ranges.
-        this.removeDirty(startLine, endLine, replaceLines.length-1);
-
         let items: TextLine[] = [];
         
         // initialize the lexer state - the first line is definitely not in a string, otherwise copy the
@@ -208,7 +235,7 @@ export class LineInputModel {
         let state = this.getStateForLine(startLine)
 
         if(startLine != endLine)
-            this.deletedLines.add([startLine, endLine-startLine])
+            this.deleteLines(startLine+1, endLine-startLine);
 
         if(replaceLines.length == 1) {
             // trivial single line edit
@@ -220,9 +247,10 @@ export class LineInputModel {
             for(let i=1; i<replaceLines.length-1; i++)
                 items.push(new TextLine(replaceLines[i], scanner.state));
             items.push(new TextLine(replaceLines[replaceLines.length-1] + right, scanner.state))
-            this.insertedLines.add([startLine, replaceLines.length-1])
+            this.insertLines(startLine+1, replaceLines.length-1)
             for(let i=1; i<items.length; i++)
                 this.changedLines.add(startLine+i);
+            this.markDirty(startLine+1);
         }
 
         // now splice in our edited lines

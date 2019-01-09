@@ -200,6 +200,9 @@ document.getElementById("input").addEventListener("keydown", e => {
 },  { capture: true })
 
 let replMain = new ReplConsole(document.getElementById("repl") as HTMLDivElement);
+replMain.model.changeRange(0, 0, "(a\n b\n c\n d)");
+replMain.selectionStart = replMain.selectionEnd = 8;
+replMain.repaint()
 let input = document.getElementById("input") as HTMLInputElement;
 document.getElementById("input").addEventListener("blur", e => {
     document.getElementById("input").focus();

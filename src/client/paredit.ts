@@ -93,7 +93,7 @@ export function killForwardList(doc: ReplConsole, start: number = doc.selectionE
         throw new Error("Invalid context for paredit.killForwardList");
     cursor.forwardList();
     doc.model.changeRange(start, cursor.offsetStart, "");
-    return doc.selectionStart = doc.selectionEnd = cursor.offsetStart;
+    return doc.selectionStart = doc.selectionEnd = start;
 }
 
 export function spliceSexpKillingBackward(doc: ReplConsole, start: number = doc.selectionEnd) {
