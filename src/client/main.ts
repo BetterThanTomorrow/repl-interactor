@@ -2,115 +2,177 @@ import { ReplConsole } from "./console";
 import { getIndent } from "./indent";
 import * as paredit from "./paredit";
 
+import {  HotKeyTable }  from "./hotkeys"
+
 const isMac = navigator.platform.match(/Mac(Intel|PPC|68k)/i); // somewhat optimistic this would run on MacOS8 but hey ;)
- 
+
+let hotkeys = new HotKeyTable({
+    "Cmd+A": () => {
+        replMain.selectionStart = 0;
+        replMain.selectionEnd = replMain.model.maxOffset;
+        replMain.repaint();
+    },
+    "Cmd+Z": () => {
+        replMain.model.undoManager.undo(replMain)
+        replMain.repaint();
+    },
+    "Cmd+Shift+Z": () => {
+        replMain.model.undoManager.redo(replMain)
+        replMain.repaint();
+    },
+    "Alt+Shift+J": () => {
+        replMain.withUndo(() => {
+            paredit.joinSexp(replMain);
+            replMain.repaint();
+        })
+    },
+    "Alt+Shift+Cmd+LeftArrow": () => {
+        replMain.withUndo(() => {
+            paredit.backwardSlurpSexp(replMain);
+            replMain.repaint();
+        })    
+    },
+    "Alt+Cmd+LeftArrow": () => {
+        replMain.withUndo(() => {
+            paredit.forwardBarfSexp(replMain);
+            replMain.repaint();
+        })    
+    },
+    "LeftArrow": () => {
+        replMain.caretLeft(true);
+        replMain.repaint();
+    },
+    "Shift+LeftArrow": () => {
+        replMain.caretLeft(false);
+        replMain.repaint();
+    },
+    "Alt+Shift+Cmd+RightArrow": () => {
+        replMain.withUndo(() => {
+            paredit.forwardSlurpSexp(replMain);
+            replMain.repaint();
+        })
+    },
+    "Alt+Cmd+RightArrow": () => {
+        replMain.withUndo(() => {
+            paredit.backwardBarfSexp(replMain);
+            replMain.repaint();
+        })    
+    },
+    "RightArrow": () => {
+        replMain.caretRight(true)
+        replMain.repaint();
+    },
+    "Shift+RightArrow": () => {
+        replMain.caretRight(false)
+        replMain.repaint();
+    },
+    "Alt+UpArrow": () => {
+        replMain.withUndo(() => {
+            paredit.spliceSexpKillingBackward(replMain)
+            replMain.repaint();
+        });
+    },
+    "UpArrow": () => {
+        replMain.caretUp(true);
+        replMain.repaint();
+    },
+    "Shift+UpArrow": () => {
+        replMain.caretUp(false);
+        replMain.repaint();
+    },
+    "DownArrow": () => {
+        replMain.caretDown(true);
+        replMain.repaint();
+    },
+    "Shift+DownArrow": () => {
+        replMain.caretDown(false);
+        replMain.repaint();
+    },
+    "Backspace": () => {
+        replMain.withUndo(() => {
+            paredit.backspace(replMain);
+            replMain.repaint()
+        })        
+    },
+    "Home": () => {
+        replMain.caretHome(true);
+        replMain.repaint();
+    },
+    "Shift+Home": () => {
+        replMain.caretHome(false);
+        replMain.repaint();
+    },
+    "Ctrl+Home": () => {
+        replMain.caretHomeAll(true);
+        replMain.repaint();
+    },
+    "Shift+Ctrl+Home": () => {
+        replMain.caretHomeAll(false);
+        replMain.repaint();
+    },
+    "End": () => {
+        replMain.caretEnd(true);
+        replMain.repaint();
+    },
+    "Shift+End": () => {
+        replMain.caretEnd(false);
+        replMain.repaint();
+    },
+    "Ctrl+End": () => {
+        replMain.caretEndAll(true);
+        replMain.repaint();
+    },
+    "Shift+Ctrl+End": () => {
+        replMain.caretEndAll(false);
+        replMain.repaint();
+    },
+    "Delete": () => {
+        replMain.withUndo(() => {
+            paredit.deleteForward(replMain);
+            replMain.repaint()
+        })        
+    },
+    "Alt+Shift+9": () => {
+        replMain.withUndo(() => {
+            paredit.wrapSexpr(replMain, "(", ")");
+            replMain.repaint();
+        })
+    },
+    "Alt+[": () => {
+        replMain.withUndo(() => {
+            paredit.wrapSexpr(replMain, "[", "]");
+            replMain.repaint();
+        })
+    },
+    "Alt+Shift+[": () => {
+        replMain.withUndo(() => {
+            paredit.wrapSexpr(replMain, "{", "}");
+            replMain.repaint();
+        })
+    },
+    "Alt+Shift+S": () => {
+        replMain.withUndo(() => {
+            paredit.splitSexp(replMain);
+            replMain.repaint();
+        })    
+    },
+    "Alt+S": () => {
+        replMain.withUndo(() => {
+            paredit.spliceSexp(replMain);
+            replMain.repaint();
+        })    
+    }
+})
+
 document.getElementById("input").addEventListener("keydown", e => {
     let commandKey = isMac ? e.metaKey : e.ctrlKey;
+    if(hotkeys.execute(e)) {
+        e.preventDefault();
+        return;
+    }
     if(e.key.length == 1 && !e.metaKey && !e.ctrlKey) {
         if(e.key == " ")
             replMain.model.undoManager.insertUndoStop();    
-
-        if(e.key == "(" && !e.altKey) {
-            replMain.withUndo(() => {
-                paredit.open(replMain, "()");
-                replMain.repaint();
-                e.preventDefault();
-                return;
-            })
-        } else if(e.key == "[" && !e.altKey) {
-            replMain.withUndo(() => {
-                paredit.open(replMain, "[]");
-                replMain.repaint();
-            })
-            e.preventDefault();
-            return;
-        } else if(e.key == "{" && !e.altKey) {
-            replMain.withUndo(() => {
-                paredit.open(replMain, "{}");
-                replMain.repaint();
-            })
-            e.preventDefault();
-            return;            
-        } else if(e.key == ")") {
-            replMain.withUndo(() => {
-                paredit.close(replMain, ")");
-                replMain.repaint();
-                return;
-            })
-            e.preventDefault();
-        } else if(e.key == "]") {
-            replMain.withUndo(() => {
-                paredit.close(replMain, "]");
-                replMain.repaint();
-            })
-            e.preventDefault();
-            return;
-        } else if(e.key == "}") {
-            replMain.withUndo(() => {
-                paredit.close(replMain, "}");
-                replMain.repaint();
-            })
-            e.preventDefault();
-            return;            
-        } else if(e.key == "(" && e.altKey) {
-            replMain.withUndo(() => {
-                paredit.wrapSexpr(replMain, "(", ")");
-                replMain.repaint();
-            })
-            e.preventDefault();
-        } else if(e.key == "[" && e.altKey) {
-            replMain.withUndo(() => {
-                paredit.wrapSexpr(replMain, "[", "]");
-                replMain.repaint();
-            })
-            e.preventDefault();
-        } else if(e.key == "{" && e.altKey) {
-            replMain.withUndo(() => {
-                paredit.wrapSexpr(replMain, "{", "}");
-                replMain.repaint();
-            })
-            e.preventDefault();
-        } else if(e.key == "S" && e.altKey) {
-            replMain.withUndo(() => {
-                paredit.splitSexp(replMain);
-                replMain.repaint();
-            })            
-            e.preventDefault();
-        } else if(e.key == "s" && e.altKey) {
-            replMain.withUndo(() => {
-                paredit.spliceSexp(replMain);
-                replMain.repaint();
-            })            
-            e.preventDefault();
-        } else if(e.key == "J" && e.altKey) {
-            replMain.withUndo(() => {
-                paredit.joinSexp(replMain);
-                replMain.repaint();
-            })            
-            e.preventDefault();
-        } else {
-            replMain.insertString(e.key);
-            e.preventDefault();
-        }
-    } else if(e.key.length == 1 && commandKey) {
-        switch(e.key) {
-            case "a":
-                replMain.selectionStart = 0;
-                replMain.selectionEnd = replMain.model.maxOffset;
-                replMain.repaint();
-                e.preventDefault();
-                break;
-            case 'z':
-                replMain.model.undoManager.undo(replMain);
-                replMain.repaint()
-                e.preventDefault();
-                break;
-            case 'Z':
-                replMain.model.undoManager.redo(replMain);
-                replMain.repaint()
-                e.preventDefault();
-                break;
-        }
     } else {
         switch(e.keyCode) {
             case 9: // Tab
@@ -123,86 +185,6 @@ document.getElementById("input").addEventListener("keydown", e => {
                 for(let i=0; i<indent; i++)
                     istr += " "
                 replMain.insertString("\n"+istr);
-                break;
-            case 37: // Left arrow            
-                if(e.altKey && e.shiftKey && commandKey) {
-                    replMain.withUndo(() => {
-                        paredit.backwardSlurpSexp(replMain);
-                        replMain.repaint();
-                    })
-                } else if(e.altKey && commandKey) {
-                    replMain.withUndo(() => {
-                        paredit.forwardBarfSexp(replMain);
-                        replMain.repaint();
-                    })
-                } else
-                    replMain.caretLeft(!e.shiftKey);
-                e.preventDefault();
-                break;
-            case 39: // Right arrow
-                if(e.altKey && e.shiftKey && commandKey) {
-                    replMain.withUndo(() => {
-                        paredit.forwardSlurpSexp(replMain);
-                        replMain.repaint();
-                    })
-                } else if(e.altKey && commandKey) {
-                    replMain.withUndo(() => {
-                        paredit.backwardBarfSexp(replMain);
-                        replMain.repaint();
-                    })
-                } else
-                    replMain.caretRight(!e.shiftKey);
-                e.preventDefault();
-                break;
-            case 8: // Backspace
-            replMain.withUndo(() => {
-                paredit.backspace(replMain);
-                replMain.repaint()
-            })
-            //replMain.backspace();
-            e.preventDefault();
-                break;
-            case 36: // Home
-                if(e.ctrlKey)
-                    replMain.caretHomeAll(!e.shiftKey);
-                else
-                    replMain.caretHome(!e.shiftKey);
-                    e.preventDefault();
-                    break;
-            case 35: // End
-                if(e.ctrlKey)
-                    replMain.caretEndAll(!e.shiftKey)
-                else
-                    replMain.caretEnd(!e.shiftKey);
-                    e.preventDefault();
-                    break;
-            case 38: // Up
-                if(e.altKey) {
-                    replMain.withUndo(() => {
-                        paredit.spliceSexpKillingBackward(replMain)
-                        replMain.repaint();
-                    });
-                } else
-                    replMain.caretUp(!e.shiftKey);
-                e.preventDefault();
-                break;
-            case 40: // Down
-                if(e.altKey) {
-                    replMain.withUndo(() => {
-                        paredit.spliceSexpKillingForward(replMain);
-                        replMain.repaint();
-                    })
-                } else
-                    replMain.caretDown(!e.shiftKey);
-                e.preventDefault();
-                break;
-            case 46: // Delete
-                replMain.withUndo(() => {
-                    paredit.deleteForward(replMain);
-                    replMain.repaint()
-                })
-                //replMain.delete();
-                e.preventDefault();
                 break;
         }
     }
