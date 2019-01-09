@@ -55,6 +55,8 @@ paredit (prepare for backporting to calva)
 
   *overtype and auto-close paren should work on mobile
 
+  *handle whole open paren tokens for slurp/barf
+
    navigation commands
 
    handle comment idosyncracies

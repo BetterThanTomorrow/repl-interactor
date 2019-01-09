@@ -121,13 +121,14 @@ export function forwardSlurpSexp(doc: ReplConsole, start: number = doc.selection
 export function backwardSlurpSexp(doc: ReplConsole, start: number = doc.selectionEnd) {
     let cursor = doc.getTokenCursor(start);
     cursor.backwardList();
-    if(cursor.getPrevToken().type == "open") {
-        let offset = cursor.offsetStart-1;
+    let tk = cursor.getPrevToken();
+    if(tk.type == "open") {
+        let offset = cursor.clone().previous().offsetStart;
         let close = cursor.getPrevToken().raw;
         cursor.previous();
         cursor.backwardSexp();
         cursor.forwardWhitespace();
-        doc.model.changeRange(offset, offset+1, "");
+        doc.model.changeRange(offset, offset+tk.raw.length, "");
         doc.model.changeRange(cursor.offsetStart, cursor.offsetStart, close);
     }
 }
@@ -148,7 +149,8 @@ export function forwardBarfSexp(doc: ReplConsole, start: number = doc.selectionE
 export function backwardBarfSexp(doc: ReplConsole, start: number = doc.selectionEnd) {
     let cursor = doc.getTokenCursor(start);
     cursor.backwardList();
-    if(cursor.getPrevToken().type == "open") {
+    let tk = cursor.getPrevToken();
+    if(tk.type == "open") {
         cursor.previous();
         let offset = cursor.offsetStart;
         let close = cursor.getToken().raw;
@@ -156,7 +158,7 @@ export function backwardBarfSexp(doc: ReplConsole, start: number = doc.selection
         cursor.forwardSexp();
         cursor.forwardWhitespace();
         doc.model.changeRange(cursor.offsetStart, cursor.offsetStart, close);
-        doc.model.changeRange(offset, offset+1, "");
+        doc.model.changeRange(offset, offset+tk.raw.length, "");
     }
 }
 
