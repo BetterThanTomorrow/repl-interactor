@@ -51,6 +51,8 @@ paredit (prepare for backporting to calva)
 
    auto delete empty list
 
+   overtype and auto-close paren should work on mobile
+
    navigation commands
 
    handle comment idosyncracies
@@ -64,3 +66,6 @@ paredit (prepare for backporting to calva)
 Firefox/Edge cursor positioning is hosed, in potentially the same way.
 ============================================
 Attach self-hosted clojurescript for giggles.
+============================================
+Performance optimization:
+  Render only visible lines - issue when editing 8000 line console entries causes layer thrashing
