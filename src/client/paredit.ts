@@ -192,9 +192,9 @@ export function backspace(doc: ReplConsole, start: number = doc.selectionStart, 
     if(start != end) {
         doc.backspace();
     } else {
-        if(parenPair.has(doc.model.getText(start-2, start))) {
-            doc.model.deleteRange(start-2, 2);
-            doc.selectionStart = doc.selectionEnd = start-2;
+        if(parenPair.has(doc.model.getText(start-1, start+1))) {
+            doc.model.deleteRange(start-1, 2);
+            doc.selectionStart = doc.selectionEnd = start-1;
         } else if(closeParen.has(doc.model.getText(start-1, start))) {
             doc.selectionStart = doc.selectionEnd = start-1;
         } else if(openParen.has(doc.model.getText(start-1, start+1))) {
