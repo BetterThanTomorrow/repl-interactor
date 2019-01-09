@@ -215,7 +215,43 @@ document.getElementById("input").addEventListener("blur", e => {
 })
 
 input.addEventListener("input", e => {
-    if(input.value == "\n") {
+    if(input.value == "(") {
+        replMain.withUndo(() => {
+            paredit.open(replMain, "()");
+            replMain.repaint();
+        })
+        e.preventDefault();
+    } else if(input.value == "[") {
+        replMain.withUndo(() => {
+            paredit.open(replMain, "[]");
+            replMain.repaint();
+        })
+        e.preventDefault();
+    } else if(input.value == "{") {
+        replMain.withUndo(() => {
+            paredit.open(replMain, "{}");
+            replMain.repaint();
+        })
+        e.preventDefault();
+    } else if(input.value == ")") {
+        replMain.withUndo(() => {
+            paredit.close(replMain, ")");
+            replMain.repaint();
+        })
+        e.preventDefault();
+    } else if(input.value == "]") {
+        replMain.withUndo(() => {
+            paredit.close(replMain, "]");
+            replMain.repaint();
+        })
+        e.preventDefault();
+    } else if(input.value == "}") {
+        replMain.withUndo(() => {
+            paredit.close(replMain, "}");
+            replMain.repaint();
+        })
+        e.preventDefault();
+    } else if(input.value == "\n") {
         replMain.model.undoManager.insertUndoStop();
         let indent = getIndent(replMain, replMain.selectionEnd);
         let istr = ""

@@ -53,7 +53,7 @@ paredit (prepare for backporting to calva)
      *backspace
      *delete
 
-   overtype and auto-close paren should work on mobile
+  *overtype and auto-close paren should work on mobile
 
    navigation commands
 
