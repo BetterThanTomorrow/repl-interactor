@@ -49,7 +49,9 @@ paredit (prepare for backporting to calva)
 
   *spliceSexpKilling trashing undo when throwing
 
-   auto delete empty list <<<
+  *auto delete empty list
+     *backspace
+     *delete
 
    overtype and auto-close paren should work on mobile
 

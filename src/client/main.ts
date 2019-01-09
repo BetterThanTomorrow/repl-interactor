@@ -155,8 +155,12 @@ document.getElementById("input").addEventListener("keydown", e => {
                 e.preventDefault();
                 break;
             case 8: // Backspace
-                replMain.backspace();
-                e.preventDefault();
+            replMain.withUndo(() => {
+                paredit.backspace(replMain);
+                replMain.repaint()
+            })
+            //replMain.backspace();
+            e.preventDefault();
                 break;
             case 36: // Home
                 if(e.ctrlKey)
@@ -193,7 +197,12 @@ document.getElementById("input").addEventListener("keydown", e => {
                 e.preventDefault();
                 break;
             case 46: // Delete
-                replMain.delete();
+                replMain.withUndo(() => {
+                    paredit.deleteForward(replMain);
+                    replMain.repaint()
+                })
+                //replMain.delete();
+                e.preventDefault();
                 break;
         }
     }

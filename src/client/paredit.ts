@@ -184,5 +184,37 @@ export function close(doc: ReplConsole, close: string, start: number = doc.selec
     }
 }
 
+export function backspace(doc: ReplConsole, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
+    if(start != end) {
+        doc.backspace();
+    } else {
+        if(doc.model.getText(start-2, start) == "()") {
+            doc.model.deleteRange(start-2, 2);
+            doc.selectionStart = doc.selectionEnd = start-2;
+        } else if(doc.model.getText(start-1, start) == ")") {
+            doc.selectionStart = doc.selectionEnd = start-1;
+        } else if(doc.model.getText(start-1, start+1) == "()") {
+            doc.model.deleteRange(start-1, 2);
+            doc.selectionStart = doc.selectionEnd = start-1;
+        } else
+            doc.backspace();
+    }
+}
+export function deleteForward(doc: ReplConsole, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
+    if(start != end) {
+        doc.delete();
+    } else {
+        if(doc.model.getText(start, start+2) == "()") {
+            doc.model.deleteRange(start, 2);
+        } else if(doc.model.getText(start, start+1) == "(") {
+            doc.selectionStart = doc.selectionEnd = start+1;
+        } else if(doc.model.getText(start-1, start+1) == "()") {
+            doc.model.deleteRange(start-1, 2);
+            doc.selectionStart = doc.selectionEnd = start-1;
+        } else
+            doc.delete();
+    }
+}
+
 // raiseSexp
 // convolute
