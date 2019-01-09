@@ -200,15 +200,19 @@ export function backspace(doc: ReplConsole, start: number = doc.selectionStart, 
             doc.backspace();
     }
 }
+
+const parenPair = new Set(["()", "[]", "{}"])
+const openParen = new Set(["(", "[", "{"])
+
 export function deleteForward(doc: ReplConsole, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
     if(start != end) {
         doc.delete();
     } else {
-        if(doc.model.getText(start, start+2) == "()") {
+        if(parenPair.has(doc.model.getText(start, start+2))) {
             doc.model.deleteRange(start, 2);
-        } else if(doc.model.getText(start, start+1) == "(") {
+        } else if(openParen.has(doc.model.getText(start, start+1))) {
             doc.selectionStart = doc.selectionEnd = start+1;
-        } else if(doc.model.getText(start-1, start+1) == "()") {
+        } else if(parenPair.has(doc.model.getText(start-1, start+1))) {
             doc.model.deleteRange(start-1, 2);
             doc.selectionStart = doc.selectionEnd = start-1;
         } else
