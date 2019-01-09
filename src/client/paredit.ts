@@ -184,16 +184,20 @@ export function close(doc: ReplConsole, close: string, start: number = doc.selec
     }
 }
 
+const parenPair = new Set(["()", "[]", "{}"])
+const openParen = new Set(["(", "[", "{"])
+const closeParen = new Set([")", "]", "}"])
+
 export function backspace(doc: ReplConsole, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
     if(start != end) {
         doc.backspace();
     } else {
-        if(doc.model.getText(start-2, start) == "()") {
+        if(parenPair.has(doc.model.getText(start-2, start))) {
             doc.model.deleteRange(start-2, 2);
             doc.selectionStart = doc.selectionEnd = start-2;
-        } else if(doc.model.getText(start-1, start) == ")") {
+        } else if(closeParen.has(doc.model.getText(start-1, start))) {
             doc.selectionStart = doc.selectionEnd = start-1;
-        } else if(doc.model.getText(start-1, start+1) == "()") {
+        } else if(openParen.has(doc.model.getText(start-1, start+1))) {
             doc.model.deleteRange(start-1, 2);
             doc.selectionStart = doc.selectionEnd = start-1;
         } else
@@ -201,8 +205,6 @@ export function backspace(doc: ReplConsole, start: number = doc.selectionStart, 
     }
 }
 
-const parenPair = new Set(["()", "[]", "{}"])
-const openParen = new Set(["(", "[", "{"])
 
 export function deleteForward(doc: ReplConsole, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
     if(start != end) {
