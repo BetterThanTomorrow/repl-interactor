@@ -57,7 +57,7 @@ paredit (prepare for backporting to calva)
 
   *handle whole open paren tokens for slurp/barf
 
-   navigation commands
+  *navigation commands
 
    handle comment idosyncracies
 

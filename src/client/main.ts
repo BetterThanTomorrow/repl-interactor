@@ -7,6 +7,42 @@ import {  HotKeyTable }  from "./hotkeys"
 const isMac = navigator.platform.match(/Mac(Intel|PPC|68k)/i); // somewhat optimistic this would run on MacOS8 but hey ;)
 
 let hotkeys = new HotKeyTable({
+    "Ctrl+LeftArrow": () => {
+        let cursor = replMain.getTokenCursor();
+        cursor.backwardSexp();
+        replMain.selectionStart = replMain.selectionEnd = cursor.offsetStart;
+        replMain.repaint();
+    },
+    "Ctrl+RightArrow": () => {
+        let cursor = replMain.getTokenCursor();
+        cursor.forwardSexp();
+        replMain.selectionStart = replMain.selectionEnd = cursor.offsetStart;
+        replMain.repaint();
+    },
+    "Ctrl+DownArrow": () => {
+        let cursor = replMain.getTokenCursor();
+        
+        do {
+            cursor.forwardWhitespace()
+        } while (cursor.getToken().type != "open" && cursor.forwardSexp()) {}
+        cursor.downList();
+        replMain.selectionStart = replMain.selectionEnd = cursor.offsetStart;
+        replMain.repaint();
+    },
+    "Ctrl+Shift+UpArrow": () => {
+        let cursor = replMain.getTokenCursor();
+        cursor.forwardList();
+        cursor.upList();
+        replMain.selectionStart = replMain.selectionEnd = cursor.offsetStart;
+        replMain.repaint();
+    },
+    "Ctrl+UpArrow": () => {
+        let cursor = replMain.getTokenCursor();
+        cursor.backwardList();
+        cursor.backwardUpList();
+        replMain.selectionStart = replMain.selectionEnd = cursor.offsetStart;
+        replMain.repaint();
+    },
     "Cmd+A": () => {
         replMain.selectionStart = 0;
         replMain.selectionEnd = replMain.model.maxOffset;
