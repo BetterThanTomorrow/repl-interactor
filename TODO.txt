@@ -61,6 +61,10 @@ paredit (prepare for backporting to calva)
 
   *handle comments with barf and slurp correctly
 
+  *open/overtype "
+
+   split/join strings
+
    grow/shrink selection
 
    raise sexp

@@ -20,12 +20,20 @@ export function wrapSexpr(doc: ReplConsole, open: string, close: string, start: 
 
 export function splitSexp(doc: ReplConsole, start: number = doc.selectionEnd) {
     let cursor = doc.getTokenCursor(start);
+    if(cursor.withinString()) {
+        if(doc.model.getText(start-1, start+1) == '\\"') {
+            doc.model.changeRange(start+1, start+1, "\" \"")
+            doc.selectionStart = doc.selectionEnd = start+2;
+        } else {
+            doc.model.changeRange(start, start, "\" \"")
+            doc.selectionStart = doc.selectionEnd = start+1;
+        }
+        return;
+    }
     cursor.backwardWhitespace();
     start = cursor.offsetStart;
     let ws = cursor.clone();
     ws.forwardWhitespace()
-    if(cursor.withinString())
-        throw new Error("Invalid context for paredit.splitSexp");
     if(cursor.backwardList()) {
         let open = cursor.getPrevToken().raw;
 
@@ -44,7 +52,16 @@ export function joinSexp(doc: ReplConsole, start: number = doc.selectionEnd) {
     let beginning = cursor.offsetStart;
     if(cursor.withinString())
         throw new Error("Invalid context for paredit.joinSexp");
-    if(open.type == "close") {
+    if(open.type == "str-end" || open.type == "str") {
+        cursor.forwardWhitespace();
+        let close = cursor.getToken();
+        let end = cursor.offsetStart;
+        if((close.type == "str" || close.type == "str-start")) {
+            doc.model.changeRange(beginning-1, end+1, "");
+            doc.selectionStart = doc.selectionEnd = beginning-1;
+        }
+        
+    } else if(open.type == "close") {
         cursor.forwardWhitespace();
         let close = cursor.getToken();
         let end = cursor.offsetStart;
@@ -187,9 +204,9 @@ export function close(doc: ReplConsole, close: string, start: number = doc.selec
     }
 }
 
-const parenPair = new Set(["()", "[]", "{}"])
-const openParen = new Set(["(", "[", "{"])
-const closeParen = new Set([")", "]", "}"])
+const parenPair = new Set(["()", "[]", "{}", '""', '\\"'])
+const openParen = new Set(["(", "[", "{", '"'])
+const closeParen = new Set([")", "]", "}", '"'])
 
 export function backspace(doc: ReplConsole, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
     if(start != end) {
@@ -215,13 +232,35 @@ export function deleteForward(doc: ReplConsole, start: number = doc.selectionSta
     } else {
         if(parenPair.has(doc.model.getText(start, start+2))) {
             doc.model.deleteRange(start, 2);
-        } else if(openParen.has(doc.model.getText(start, start+1))) {
-            doc.selectionStart = doc.selectionEnd = start+1;
         } else if(parenPair.has(doc.model.getText(start-1, start+1))) {
             doc.model.deleteRange(start-1, 2);
             doc.selectionStart = doc.selectionEnd = start-1;
+        } else if(openParen.has(doc.model.getText(start, start+1))) {
+            doc.selectionStart = doc.selectionEnd = start+1;
         } else
             doc.delete();
+    }
+}
+
+export function stringQuote(doc: ReplConsole, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
+    if(start != end) {
+        doc.insertString('"');
+    } else {
+        let cursor = doc.getTokenCursor(start);
+        if(cursor.withinString()) {
+            // inside a string, let's be clever
+            if(doc.model.getText(start, start+1) == '"' || doc.model.getText(start-1, start+1) == '\\"') {
+                doc.selectionStart = doc.selectionEnd = start + 1;
+            } else if(doc.model.getText(start, start+2) == '\\"') {
+                doc.selectionStart = doc.selectionEnd = start + 2;
+            } else {
+                doc.model.changeRange(start, start, '\\"');
+                doc.selectionStart = doc.selectionEnd = start + 2;
+            }
+        } else {
+            doc.model.changeRange(start, start, '""');
+            doc.selectionStart = doc.selectionEnd = start + 1;
+        }
     }
 }
 
