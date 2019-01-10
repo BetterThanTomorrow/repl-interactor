@@ -59,7 +59,7 @@ paredit (prepare for backporting to calva)
 
   *navigation commands
 
-   handle comment idosyncracies
+  *handle comments with barf and slurp correctly
 
    grow/shrink selection
 

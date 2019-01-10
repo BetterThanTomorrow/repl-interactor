@@ -102,6 +102,8 @@ export class LineInputModel {
     }
 
     private deleteLines(start: number, count: number) {
+        if(count == 0)
+            return;
         this.updateLines(start, count, 0);
         this.deletedLines.add([start, count])
     }
@@ -235,7 +237,7 @@ export class LineInputModel {
         let state = this.getStateForLine(startLine)
 
         if(startLine != endLine)
-            this.deleteLines(startLine+1, endLine-startLine);
+            this.deleteLines(startLine+1, endLine-startLine - (replaceLines.length-1));
 
         if(replaceLines.length == 1) {
             // trivial single line edit
@@ -247,7 +249,7 @@ export class LineInputModel {
             for(let i=1; i<replaceLines.length-1; i++)
                 items.push(new TextLine(replaceLines[i], scanner.state));
             items.push(new TextLine(replaceLines[replaceLines.length-1] + right, scanner.state))
-            this.insertLines(startLine+1, replaceLines.length-1)
+            this.insertLines(startLine+1, replaceLines.length-1 - (endLine-startLine))
             for(let i=1; i<items.length; i++)
                 this.changedLines.add(startLine+i);
             this.markDirty(startLine+1);

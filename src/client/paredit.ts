@@ -88,11 +88,12 @@ export function killBackwardList(doc: ReplConsole, start: number = doc.selection
 
 export function killForwardList(doc: ReplConsole, start: number = doc.selectionEnd) {
     let cursor = doc.getTokenCursor(start);
+    let inComment = (cursor.getToken().type == "comment" && start > cursor.offsetStart) || cursor.getPrevToken().type == "comment";
     // NOTE: this should unwrap the string, not throw.
     if(cursor.withinString())
         throw new Error("Invalid context for paredit.killForwardList");
     cursor.forwardList();
-    doc.model.changeRange(start, cursor.offsetStart, "");
+    doc.model.changeRange(start, cursor.offsetStart, inComment ? "\n" : "");
     return doc.selectionStart = doc.selectionEnd = start;
 }
 
@@ -111,8 +112,8 @@ export function forwardSlurpSexp(doc: ReplConsole, start: number = doc.selection
         let offset = cursor.offsetStart;
         let close = cursor.getToken().raw;
         cursor.next();
-        cursor.forwardSexp();
-        cursor.backwardWhitespace();
+        cursor.forwardSexp(true);
+        cursor.backwardWhitespace(false);
         doc.model.changeRange(cursor.offsetStart, cursor.offsetStart, close);
         doc.model.changeRange(offset, offset+1, "");
     }
@@ -126,8 +127,8 @@ export function backwardSlurpSexp(doc: ReplConsole, start: number = doc.selectio
         let offset = cursor.clone().previous().offsetStart;
         let close = cursor.getPrevToken().raw;
         cursor.previous();
-        cursor.backwardSexp();
-        cursor.forwardWhitespace();
+        cursor.backwardSexp(true);
+        cursor.forwardWhitespace(false);
         doc.model.changeRange(offset, offset+tk.raw.length, "");
         doc.model.changeRange(cursor.offsetStart, cursor.offsetStart, close);
     }
@@ -139,7 +140,7 @@ export function forwardBarfSexp(doc: ReplConsole, start: number = doc.selectionE
     if(cursor.getToken().type == "close") {
         let offset = cursor.offsetStart;
         let close = cursor.getToken().raw;
-        cursor.backwardSexp();
+        cursor.backwardSexp(true);
         cursor.backwardWhitespace();
         doc.model.changeRange(offset, offset+1, "");
         doc.model.changeRange(cursor.offsetStart, cursor.offsetStart, close);
@@ -155,8 +156,8 @@ export function backwardBarfSexp(doc: ReplConsole, start: number = doc.selection
         let offset = cursor.offsetStart;
         let close = cursor.getToken().raw;
         cursor.next();
-        cursor.forwardSexp();
-        cursor.forwardWhitespace();
+        cursor.forwardSexp(true);
+        cursor.forwardWhitespace(false);
         doc.model.changeRange(cursor.offsetStart, cursor.offsetStart, close);
         doc.model.changeRange(offset, offset+tk.raw.length, "");
     }

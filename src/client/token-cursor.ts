@@ -70,6 +70,7 @@ export class TokenCursor {
             this.line++;
             this.token = 0;
         }
+        return this;
     }
 
     /**
@@ -121,11 +122,11 @@ export class LispTokenCursor extends TokenCursor {
     /**
      * Moves this token past any whitespace or comment.
      */
-    forwardWhitespace(includComments = false) {
+    forwardWhitespace(includeComments = true) {
         while(!this.atEnd()) {
             switch(this.getToken().type) {
                 case "comment":
-                    if(!includComments)
+                    if(!includeComments)
                         return;
                 case "eol":
                 case "ws":
@@ -140,13 +141,19 @@ export class LispTokenCursor extends TokenCursor {
     /**
      * Moves this token back past any whitespace or comment.
      */
-    backwardWhitespace(includeComments = false) {
+    backwardWhitespace(includeComments = true) {
         while(!this.atStart()) {
             switch(this.getPrevToken().type) {
                 case "comment":
                     if(!includeComments)
                         return;
                 case "eol":
+                    this.previous();
+                    if(this.getPrevToken().type == "comment") {
+                        this.next();
+                        return;
+                    }
+                    continue;
                 case "ws":
                     this.previous();
                     continue;
@@ -167,16 +174,20 @@ export class LispTokenCursor extends TokenCursor {
      * 
      * @returns true if the cursor was moved, false otherwise.
      */
-    forwardSexp(): boolean {
+    forwardSexp(skipComments = false): boolean {
         let delta = 0;
-        this.forwardWhitespace();
+        this.forwardWhitespace(!skipComments);
         if(this.getToken().type == "close") {
             return false;
         }
         while(!this.atEnd()) {
-            this.forwardWhitespace();
+            this.forwardWhitespace(!skipComments);
             let tk = this.getToken();
             switch(tk.type) {
+                case 'comment':
+                    this.next(); // skip past comment
+                    this.next(); // skip past EOL.
+                    return true;
                 case 'id':
                 case 'lit':
                 case 'kw':
@@ -219,20 +230,21 @@ export class LispTokenCursor extends TokenCursor {
      * 
      * @returns true if the cursor was moved, false otherwise.
      */
-    backwardSexp() {
+    backwardSexp(skipComments = true) {
         let delta = 0;
-        this.backwardWhitespace();
+        this.backwardWhitespace(!skipComments);
         switch(this.getPrevToken().type) {
             case "open":
                 return false;
         }
         while(!this.atStart()) {
-            this.backwardWhitespace();
+            this.backwardWhitespace(!skipComments);
             let tk = this.getPrevToken();
             switch(tk.type) {
                 case 'id':
                 case 'lit':
                 case 'kw':
+                case 'comment':
                 case 'str':
                 case 'str-start':
                     this.previous();

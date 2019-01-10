@@ -9,13 +9,13 @@ const isMac = navigator.platform.match(/Mac(Intel|PPC|68k)/i); // somewhat optim
 let hotkeys = new HotKeyTable({
     "Ctrl+LeftArrow": () => {
         let cursor = replMain.getTokenCursor();
-        cursor.backwardSexp();
+        cursor.backwardSexp(true);
         replMain.selectionStart = replMain.selectionEnd = cursor.offsetStart;
         replMain.repaint();
     },
     "Ctrl+RightArrow": () => {
         let cursor = replMain.getTokenCursor();
-        cursor.forwardSexp();
+        cursor.forwardSexp(true);
         replMain.selectionStart = replMain.selectionEnd = cursor.offsetStart;
         replMain.repaint();
     },
@@ -115,6 +115,12 @@ let hotkeys = new HotKeyTable({
     "Shift+UpArrow": () => {
         replMain.caretUp(false);
         replMain.repaint();
+    },
+    "Alt+DownArrow": () => {
+        replMain.withUndo(() => {
+            paredit.spliceSexpKillingForward(replMain)
+            replMain.repaint();
+        });
     },
     "DownArrow": () => {
         replMain.caretDown(true);
@@ -227,6 +233,9 @@ document.getElementById("input").addEventListener("keydown", e => {
 },  { capture: true })
 
 let replMain = new ReplConsole(document.getElementById("repl") as HTMLDivElement);
+replMain.insertString("((;foo\nbar))");
+replMain.selectionStart = replMain.selectionEnd = 8;
+replMain.repaint()
 let input = document.getElementById("input") as HTMLInputElement;
 document.getElementById("input").addEventListener("blur", e => {
     document.getElementById("input").focus();
