@@ -208,11 +208,28 @@ const parenPair = new Set(["()", "[]", "{}", '""', '\\"'])
 const openParen = new Set(["(", "[", "{", '"'])
 const closeParen = new Set([")", "]", "}", '"'])
 
+export function backslash(doc: ReplConsole, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
+    if(start != end)
+        doc.insertString('\\'); // FIXME: this will break things.
+    else {
+        if(doc.getTokenCursor().withinString()) {
+            doc.model.changeRange(start, start, '\\\\');
+            doc.selectionStart = doc.selectionEnd = start+1;
+        }
+    }
+    
+}
+
 export function backspace(doc: ReplConsole, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
     if(start != end) {
         doc.backspace();
     } else {
-        if(parenPair.has(doc.model.getText(start-1, start+1))) {
+        if(doc.model.getText(start-3, start) == '\\""') {
+            doc.selectionStart = doc.selectionEnd = start-1;
+        } else if(doc.model.getText(start-2, start-1) == '\\') {
+            doc.model.deleteRange(start-2, 2);
+            doc.selectionStart = doc.selectionEnd = start-2;
+        } else if(parenPair.has(doc.model.getText(start-1, start+1))) {
             doc.model.deleteRange(start-1, 2);
             doc.selectionStart = doc.selectionEnd = start-1;
         } else if(closeParen.has(doc.model.getText(start-1, start)) || openParen.has(doc.model.getText(start-1, start))) {
@@ -224,7 +241,6 @@ export function backspace(doc: ReplConsole, start: number = doc.selectionStart, 
             doc.backspace();
     }
 }
-
 
 export function deleteForward(doc: ReplConsole, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
     if(start != end) {
@@ -249,13 +265,11 @@ export function stringQuote(doc: ReplConsole, start: number = doc.selectionStart
         let cursor = doc.getTokenCursor(start);
         if(cursor.withinString()) {
             // inside a string, let's be clever
-            if(doc.model.getText(start, start+1) == '"' || doc.model.getText(start-1, start+1) == '\\"') {
+            if(cursor.offsetEnd-1 == start && cursor.getToken().type == "str" || cursor.getToken().type == "str-end") {
                 doc.selectionStart = doc.selectionEnd = start + 1;
-            } else if(doc.model.getText(start, start+2) == '\\"') {
-                doc.selectionStart = doc.selectionEnd = start + 2;
             } else {
-                doc.model.changeRange(start, start, '\\"');
-                doc.selectionStart = doc.selectionEnd = start + 2;
+                doc.model.changeRange(start, start, '"');
+                doc.selectionStart = doc.selectionEnd = start + 1;
             }
         } else {
             doc.model.changeRange(start, start, '""');

@@ -350,7 +350,7 @@ export class LispTokenCursor extends TokenCursor {
         if(tk == "str" || tk == "str-start" || tk == "str-end" || tk == "str-inside") {
             return true;
         }
-        if(tk == "ws") {
+        if(tk == "eol") {
             tk = this.getPrevToken().type;
             if(tk == "str-inside" || tk == "str-start")
                 return true;

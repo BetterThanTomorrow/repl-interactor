@@ -7,6 +7,18 @@ import {  HotKeyTable }  from "./hotkeys"
 const isMac = navigator.platform.match(/Mac(Intel|PPC|68k)/i); // somewhat optimistic this would run on MacOS8 but hey ;)
 
 let hotkeys = new HotKeyTable({
+    "Alt+Backspace": () => {
+        replMain.withUndo(() => {
+            replMain.backspace();
+            replMain.repaint();
+        });
+    },
+    "Alt+Delete": () => {
+        replMain.withUndo(() => {
+            replMain.delete();
+            replMain.repaint();
+        });
+    },
     "Ctrl+LeftArrow": () => {
         let cursor = replMain.getTokenCursor();
         cursor.backwardSexp(true);
