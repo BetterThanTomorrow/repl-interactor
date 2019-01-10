@@ -251,8 +251,7 @@ document.getElementById("input").addEventListener("keydown", e => {
 },  { capture: true })
 
 let replMain = new ReplConsole(document.getElementById("repl") as HTMLDivElement);
-replMain.insertString("((;foo\nbar))");
-replMain.selectionStart = replMain.selectionEnd = 8;
+replMain.insertString("(defn sqr [x]\n  (* x x))");
 replMain.repaint()
 let input = document.getElementById("input") as HTMLInputElement;
 document.getElementById("input").addEventListener("blur", e => {
