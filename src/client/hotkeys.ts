@@ -14,6 +14,7 @@ function key(name: string, id: number) {
 }
 
 key("Backspace", 8)
+key("Space", 0x20)
 key("Tab", 9)
 key("Return", 13)
 key("End", 35)

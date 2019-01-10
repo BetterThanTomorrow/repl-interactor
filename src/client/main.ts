@@ -13,6 +13,12 @@ let hotkeys = new HotKeyTable({
             replMain.repaint();
         });
     },
+    "Ctrl+Shift+Space": () => {
+        replMain.withUndo(() => {
+            paredit.growSelection(replMain)
+            replMain.repaint();
+        })
+    },
     "Alt+Delete": () => {
         replMain.withUndo(() => {
             replMain.delete();

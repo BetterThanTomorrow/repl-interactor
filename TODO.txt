@@ -61,21 +61,22 @@ paredit (prepare for backporting to calva)
 
   *handle comments with barf and slurp correctly
 
-  *open/overtype "
-
   *split/join strings
 
-   grow/shrink selection
+  *growSelection
+
+   shrinkSelection
 
    raise sexp
 
    convolute
-
-   strict mode (don't delete non-empty parens)
 ============================================
 Firefox/Edge cursor positioning is hosed, in potentially the same way.
 ============================================
 Attach self-hosted clojurescript for giggles.
+============================================
+complex string wrangling
+
 ============================================
 Performance optimization:
   Render only visible lines - issue when editing 8000 line console entries causes layer thrashing

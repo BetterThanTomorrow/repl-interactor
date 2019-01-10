@@ -90,6 +90,10 @@ export class TokenCursor {
     getToken() {
         return this.doc.lines[this.line].tokens[this.token];
     }
+
+    equals(cursor: TokenCursor) {
+        return this.line == cursor.line && this.token == cursor.token && this.doc == cursor.doc;
+    }
 }
 
 export class LispTokenCursor extends TokenCursor {
@@ -345,6 +349,12 @@ export class LispTokenCursor extends TokenCursor {
         return false;
     }
 
+    withinWhitespace() {
+        let tk = this.getToken().type;
+        if(tk == "eol" || tk == "ws") {
+            return true;
+        }
+    }
     withinString() {
         let tk = this.getToken().type;
         if(tk == "str" || tk == "str-start" || tk == "str-end" || tk == "str-inside") {
