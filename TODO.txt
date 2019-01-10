@@ -63,13 +63,15 @@ paredit (prepare for backporting to calva)
 
   *open/overtype "
 
-   split/join strings
+  *split/join strings
 
    grow/shrink selection
 
    raise sexp
 
    convolute
+
+   strict mode (don't delete non-empty parens)
 ============================================
 Firefox/Edge cursor positioning is hosed, in potentially the same way.
 ============================================
