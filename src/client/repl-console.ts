@@ -195,6 +195,22 @@ export class ReplConsole {
         this.requestPrompt("user=> ")
     }
 
+    printElement(element: HTMLElement) {
+        if(this.input.disabled) {
+            this.elem.appendChild(element);
+        } else {
+            this.elem.insertBefore(element, this.readline.elem);
+        }
+        this.elem.lastElementChild.scrollIntoView({ block: "end"})
+    }
+
+    print(text: string) {
+        let el = document.createElement("div");
+        el.textContent = text;
+        el.className = "output";
+        this.printElement(el);
+    }
+
     submitLine() {
         this.readline.freeze();
         this.input.disabled = true;
