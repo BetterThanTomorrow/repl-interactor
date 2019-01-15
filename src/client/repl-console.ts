@@ -27,10 +27,10 @@ const defaultHotkeys = new HotKeyTable<ReplConsole>({
     "Alt+Cmd+RightArrow": "backward-barf-sexp",
     "RightArrow": "cursor-right",
     "Shift+RightArrow": "cursor-select-right",
-    "Alt+UpArrow": "splice-sexp-killing-backwards",
+    "Alt+LeftArrow": "splice-sexp-killing-backwards",
     "UpArrow": "cursor-up",
     "Shift+UpArrow": "cursor-select-up",
-    "Alt+DownArrow": "splice-sexp-killing-forwards",
+    "Alt+RightArrow": "splice-sexp-killing-forwards",
     "DownArrow": "cursor-down",
     "Shift+DownArrow": "cursor-select-down",
     "Backspace": "backspace",
@@ -47,7 +47,9 @@ const defaultHotkeys = new HotKeyTable<ReplConsole>({
     "Alt+[": "wrap-square",
     "Alt+Shift+[": "wrap-curly",
     "Alt+Shift+S": "split-sexp",
-    "Alt+S": "splice-sexp"
+    "Alt+S": "splice-sexp",
+    "Alt+UpArrow": "history-up",
+    "Alt+DownArrow": "history-down",
 })
 
 
@@ -55,6 +57,9 @@ export class ReplConsole {
     readline: ReplReadline;
     input: HTMLInputElement;
     hotkeys: HotKeyTable<ReplConsole>;
+
+    historyIndex = -1;
+    history: string[] = [];
 
     constructor(public elem: HTMLElement) {
         this.hotkeys = defaultHotkeys;
@@ -212,6 +217,9 @@ export class ReplConsole {
     }
 
     submitLine() {
+        let line = this.readline.model.getText(0, this.readline.model.maxOffset);
+        this.history.push(line);
+        this.historyIndex = -1;
         this.readline.freeze();
         this.input.disabled = true;
         this.requestPrompt("user=> ")
@@ -458,6 +466,30 @@ export class ReplConsole {
                 paredit.spliceSexp(this.readline);
                 this.readline.repaint();
             })             
+        },
+        "history-up": () => {
+            if(this.historyIndex == 0)
+                return;
+            if(this.historyIndex == -1)
+                this.historyIndex = this.history.length;
+            this.historyIndex--;
+            let line = this.history[this.historyIndex] || "";
+            this.readline.withUndo(() => {
+                this.readline.model.changeRange(0, this.readline.model.maxOffset, line);
+                this.readline.selectionStart = this.readline.selectionEnd = line.length;
+            })
+            this.readline.repaint();
+        },
+        "history-down": () => {
+            if(this.historyIndex == this.history.length || this.historyIndex == -1)
+                return;
+            this.historyIndex++;
+            let line = this.history[this.historyIndex] || "";
+            this.readline.withUndo(() => {
+                this.readline.model.changeRange(0, this.readline.model.maxOffset, line);
+                this.readline.selectionStart = this.readline.selectionEnd = line.length;
+            })
+            this.readline.repaint();
         }
     }
 }

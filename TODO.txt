@@ -76,7 +76,7 @@ paredit (prepare for backporting to calva)
 *Display Prompt
 *Read / Print loop
 *Write expressions to repl stream, maintaining readline position if one is active.
- History up/down
+*History up/down
 *Handle auto-scroll correctly
 *Extract main.ts into a re-usable sane component.
 
