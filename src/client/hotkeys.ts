@@ -8,6 +8,10 @@ const isMac = navigator.platform.match(/Mac(Intel|PPC|68k)/i); // somewhat optim
 let keyToId: {[id: string]: number} = {}
 let idToKey: {[id: string]: string} = {}
 
+interface CommandWidget {
+    commands: {[id: string]: () => void};
+}
+
 function key(name: string, id: number) {
     keyToId[name.toLowerCase()] = id;
     idToKey[id] = name;
@@ -19,6 +23,8 @@ key("Tab", 9)
 key("Return", 13)
 key("End", 35)
 key("/", 191)
+key("[", 219)
+
 key("Home", 36)
 key("LeftArrow", 37)
 key("UpArrow", 38)
@@ -26,7 +32,7 @@ key("RightArrow", 39)
 key("DownArrow", 40)
 key("Delete", 46)
 
-export function parseHotKey(key: string, fn: () => void) {
+export function parseHotKey(key: string, command: any) {
     let parts = key.split("+").map(x => x.trim().toLowerCase());
     let i=0;
     let modifiers = 0;
@@ -49,18 +55,18 @@ export function parseHotKey(key: string, fn: () => void) {
     if(mainKey.length == 1) {
         let key = keyToId[mainKey];
         if(key === undefined)
-            return new HotKey(modifiers, mainKey.toUpperCase().charCodeAt(0), fn);
-        return new HotKey(modifiers, key, fn)
+            return new HotKey(modifiers, mainKey.toUpperCase().charCodeAt(0), command);
+        return new HotKey(modifiers, key, command)
     } else {
         let key = keyToId[mainKey];
         if(key === undefined)
             throw new Error("Unknown key: "+mainKey);
-        return new HotKey(modifiers, key, fn)
+        return new HotKey(modifiers, key, command)
     }
 }
 
 export class HotKey {
-    constructor(public modifiers: number, public key: number, public fn: () => void) {
+    constructor(public modifiers: number, public key: number, public command: string) {
     }
 
     match(e: KeyboardEvent): boolean {
@@ -74,17 +80,17 @@ export class HotKey {
     }
 }
 
-export class HotKeyTable {
+export class HotKeyTable<T extends CommandWidget> {
     table: HotKey[] = [];
-    constructor(keys: {[id: string]: (e?: KeyboardEvent) => void}) {
+    constructor(keys: {[id: string]: keyof T["commands"]}) {
         for(let key in keys)
             this.table.push(parseHotKey(key, keys[key]));
     }
 
-    execute(e: KeyboardEvent) {
+    execute(obj: T, e: KeyboardEvent) {
         for(let key of this.table) {
             if(key.match(e)) {
-                key.fn();
+                obj.commands[key.command]()
                 return true;
             }
         }

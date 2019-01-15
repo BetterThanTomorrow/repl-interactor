@@ -78,7 +78,7 @@ paredit (prepare for backporting to calva)
  Write expressions to repl stream, maintaining readline position if one is active.
  History up/down
 *Handle auto-scroll correctly
- Extract main.ts into a re-usable sane component.
+*Extract main.ts into a re-usable sane component.
 
 ============================================
 Attach self-hosted clojurescript for giggles.
