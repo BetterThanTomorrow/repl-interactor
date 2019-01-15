@@ -1,6 +1,6 @@
 import { Scanner, Token, ScannerState } from "./clojure-lexer";
 import { UndoManager, UndoStep } from "./undo";
-import { ReplConsole } from "./console";
+import { ReplReadline } from "./readline";
 
 const scanner = new Scanner();
 
@@ -59,7 +59,7 @@ export class LineInputModel {
     deletedLines: Set<[number, number]> = new Set();
 
     /** Handles undo/redo support */
-    undoManager = new UndoManager<ReplConsole>();
+    undoManager = new UndoManager<ReplReadline>();
 
     /** When set, insertString and deleteRange will be added to the undo history. */
     recordingUndo: boolean = false;
@@ -306,18 +306,18 @@ export class LineInputModel {
  * 
  * All Editor Undo steps contain the position of the cursor before and after the edit.
  */
-class EditorUndoStep extends UndoStep<ReplConsole> {
+class EditorUndoStep extends UndoStep<ReplReadline> {
     constructor(public name: string, public start: number, public insertedText: string, public deletedText: string, public oldSelection?: [number, number], public newSelection?: [number, number]) {
         super();
     }
 
-    undo(c: ReplConsole) {
+    undo(c: ReplReadline) {
         c.model.changeRange(this.start, this.start+this.insertedText.length, this.deletedText);
         if(this.oldSelection)
             [c.selectionStart, c.selectionEnd] = this.oldSelection;
     }
 
-    redo(c: ReplConsole) {
+    redo(c: ReplReadline) {
         c.model.changeRange(this.start, this.start+this.deletedText.length, this.insertedText);
         if(this.newSelection)
             [c.selectionStart, c.selectionEnd] = this.newSelection;

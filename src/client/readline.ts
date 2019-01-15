@@ -14,7 +14,7 @@ function measureText(str: string) {
 /**
  * A syntax-highlighting text editor.
  */
-export class ReplConsole {
+export class ReplReadline {
     /** The offset of the start of the selection into the document. */
     private _selectionStart: number = 0;
 
@@ -549,16 +549,31 @@ export class ReplConsole {
         window.removeEventListener("mouseup", this.mouseUp)
     }
 
-    constructor(public mainElem: HTMLDivElement) {
-        this.mainElem.addEventListener("mousedown", e => {
-            e.preventDefault();
-            this.selectionStart = this.selectionEnd = this.pageToOffset(e.pageX, e.pageY)
-            this.caretX = this.model.getRowCol(this.selectionEnd)[1];
-            this.repaint();
+    private mouseDown = (e: MouseEvent) => {
+        e.preventDefault();
+        this.selectionStart = this.selectionEnd = this.pageToOffset(e.pageX, e.pageY)
+        this.caretX = this.model.getRowCol(this.selectionEnd)[1];
+        this.repaint();
 
-            window.addEventListener("mousemove", this.mouseDrag)
-            window.addEventListener("mouseup", this.mouseUp)
-        })
+        window.addEventListener("mousemove", this.mouseDrag)
+        window.addEventListener("mouseup", this.mouseUp)
+    }
+
+    public mainElem: HTMLElement;
+
+    constructor(public parent: HTMLDivElement, prompt: string) {
+        let wrap = document.createElement("div");
+        wrap.className = "prompt-wrap"
+        let promptElem = document.createElement("div");
+        promptElem.className = "prompt"
+        promptElem.textContent = prompt;
+
+        this.mainElem = document.createElement("div");
+        wrap.appendChild(promptElem);
+        wrap.appendChild(this.mainElem);
+
+        parent.appendChild(wrap);
+        this.mainElem.addEventListener("mousedown", this.mouseDown)
         
         this.caret = document.createElement("div");
         this.caret.className = "caret";
@@ -582,6 +597,23 @@ export class ReplConsole {
         selection.className = "selection";
         line.append(selection);
         return line;
+    }
+
+    public canReturn() {
+        return this.selectionEnd == this.selectionStart && this.selectionEnd == this.model.maxOffset;
+    }
+
+    public freeze() {
+        this.mainElem.removeEventListener("mousedown", this.mouseDown)
+        window.removeEventListener("mouseup", this.mouseUp)
+        window.removeEventListener("mousemove", this.mouseDrag);
+        this.selectionStart = this.selectionEnd = this.model.maxOffset;
+        this.repaint();
+        this.caret.parentElement.removeChild(this.caret);
+    }
+
+    public doReturn() {
+        this.freeze();
     }
 
     growSelectionStack: [number, number][] = [];

@@ -8,7 +8,7 @@
                 color: #fff;
             }
             
-            #repl {
+            .repl {
                 font-family: "Fira Code", "Courier New", monospace;
                 font-weight: normal;
                 font-size: 12px;
@@ -111,6 +111,15 @@
                     display: none;
                 }
             }
+
+            .prompt-wrap {
+                display: flex;
+                white-space: pre;
+            }
+
+            .prompt {
+                color: #888;
+            }
         </style>
         <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
     </head>
@@ -135,8 +144,7 @@
             <p><b>Alt + Shift + /</b> - Convolute sexp</p>
             
         </div>
-        <input id="input" style="width: 0px; height: 0px; position: fixed; opacity: 0;" autocorrect="off" autocapitalize="none">
-        <div id="repl">
+        <div class="repl">
         </div>
     </body>
     <script src="main.js"></script>

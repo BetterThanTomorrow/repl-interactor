@@ -1,4 +1,4 @@
-import { ReplConsole } from "./console";
+import { ReplReadline } from "./readline";
 import { getIndent } from "./indent";
 import * as paredit from "./paredit";
 
@@ -241,11 +241,16 @@ let hotkeys = new HotKeyTable({
         })    
     }
 })
+let input = document.createElement("input") as HTMLInputElement;
 
-document.getElementById("input").addEventListener("keydown", e => {
-    let commandKey = isMac ? e.metaKey : e.ctrlKey;
+input.style.width = "0px";
+input.style.height = "0px";
+input.style.position = "fixed";
+input.style.opacity = "0";
+input.addEventListener("keydown", e => {
     if(hotkeys.execute(e)) {
         e.preventDefault();
+        replMain.mainElem.scrollIntoView({ block: "end"})
         return;
     }
     if(e.key.length == 1 && !e.metaKey && !e.ctrlKey) {
@@ -257,25 +262,46 @@ document.getElementById("input").addEventListener("keydown", e => {
                 e.preventDefault();
                 break;
             case 13:
-                replMain.model.undoManager.insertUndoStop();
-                let indent = getIndent(replMain, replMain.selectionEnd);
-                let istr = ""
-                for(let i=0; i<indent; i++)
-                    istr += " "
-                replMain.insertString("\n"+istr);
+                if(replMain.canReturn()) {
+                    submitLine()
+                } else {
+                    replMain.model.undoManager.insertUndoStop();
+                    let indent = getIndent(replMain, replMain.selectionEnd);
+                    let istr = ""
+                    for(let i=0; i<indent; i++)
+                        istr += " "
+                    replMain.insertString("\n"+istr);
+                }
                 break;
         }
     }
+    replMain.mainElem.scrollIntoView({ block: "end"})
 },  { capture: true })
 
-let replMain = new ReplConsole(document.getElementById("repl") as HTMLDivElement);
-replMain.repaint()
-let input = document.getElementById("input") as HTMLInputElement;
-document.getElementById("input").addEventListener("blur", e => {
-    document.getElementById("input").focus();
+function submitLine() {
+    replMain.freeze();
+    input.disabled = true;
+    requestPrompt("user=> ")
+}
+
+let replMain: ReplReadline;
+function requestPrompt(prompt: string) {
+    replMain = new ReplReadline(document.querySelector(".repl") as HTMLDivElement, prompt);
+    replMain.mainElem.appendChild(input);
+    input.disabled = false;
+    input.focus();
+    replMain.mainElem.scrollIntoView({ block: "end"})
+}
+
+requestPrompt("user=> ")
+
+input.addEventListener("blur", e => {
+    input.focus();
 })
 
 input.addEventListener("input", e => {
+    replMain.mainElem.scrollIntoView({ block: "end"})
+
     if(input.value == '"') {
         replMain.withUndo(() => {
             paredit.stringQuote(replMain)
@@ -325,21 +351,26 @@ input.addEventListener("input", e => {
         })
         e.preventDefault();
     } else if(input.value == "\n") {
-        replMain.model.undoManager.insertUndoStop();
-        let indent = getIndent(replMain, replMain.selectionEnd);
-        let istr = ""
-        for(let i=0; i<indent; i++)
-            istr += " "
-        replMain.insertString("\n"+istr);
+        if(replMain.canReturn()) {
+            this.submitLine();
+        } else {
+            replMain.model.undoManager.insertUndoStop();
+            let indent = getIndent(replMain, replMain.selectionEnd);
+            let istr = ""
+            for(let i=0; i<indent; i++)
+                istr += " "
+            replMain.insertString("\n"+istr);
+        }
     } else {
         replMain.insertString(input.value)
     }
     input.value = ""
     e.preventDefault();
+    replMain.mainElem.scrollIntoView({ block: "end"})
 })
 
 document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("input").focus();
+    input.focus();
 })
 
 document.addEventListener("cut", e => {

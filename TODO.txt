@@ -73,10 +73,17 @@ paredit (prepare for backporting to calva)
 ============================================
 *Firefox/Edge cursor positioning is hosed, in potentially the same way.
 ============================================
+*Display Prompt
+*Read / Print loop
+ Write expressions to repl stream, maintaining readline position if one is active.
+ History up/down
+*Handle auto-scroll correctly
+ Extract main.ts into a re-usable sane component.
+
+============================================
 Attach self-hosted clojurescript for giggles.
 ============================================
-complex string wrangling
-
+complex string wrangling for paredit
 ============================================
 Performance optimization:
   Render only visible lines - issue when editing 8000 line console entries causes layer thrashing
