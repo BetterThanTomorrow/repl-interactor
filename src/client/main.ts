@@ -7,6 +7,12 @@ import {  HotKeyTable }  from "./hotkeys"
 const isMac = navigator.platform.match(/Mac(Intel|PPC|68k)/i); // somewhat optimistic this would run on MacOS8 but hey ;)
 
 let hotkeys = new HotKeyTable({
+    "Alt+R": () => {
+        replMain.withUndo(() => {
+            paredit.raiseSexp(replMain);
+            replMain.repaint();
+        });
+    },
     "Alt+Backspace": () => {
         replMain.withUndo(() => {
             replMain.backspace();

@@ -322,5 +322,23 @@ export function shrinkSelection(doc: ReplConsole) {
     }
 }
 
-// raiseSexp
+export function raiseSexp(doc: ReplConsole, start = doc.selectionStart, end = doc.selectionEnd) {
+    if(start == end) {
+        let cursor = doc.getTokenCursor(end);
+        cursor.forwardWhitespace();
+        let endCursor = cursor.clone();
+        if(endCursor.forwardSexp()) {
+            let raised = doc.model.getText(cursor.offsetStart, endCursor.offsetStart);
+            cursor.backwardList();
+            endCursor.forwardList();
+            if(cursor.getPrevToken().type == "open") {
+                cursor.previous();
+                if(endCursor.getToken().type == "close") {
+                    doc.model.changeRange(cursor.offsetStart, endCursor.offsetEnd, raised);
+                    doc.selectionStart = doc.selectionEnd = cursor.offsetStart;
+                }
+            }
+        }
+    }
+}
 // convolute

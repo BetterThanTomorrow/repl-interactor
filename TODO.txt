@@ -65,9 +65,9 @@ paredit (prepare for backporting to calva)
 
   *growSelection
 
-   shrinkSelection
+  *shrinkSelection
 
-   raise sexp
+  *raise sexp
 
    convolute
 ============================================
