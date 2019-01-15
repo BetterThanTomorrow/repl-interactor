@@ -19,6 +19,12 @@ let hotkeys = new HotKeyTable({
             replMain.repaint();
         })
     },
+    "Ctrl+Alt+Shift+Space": () => {
+        replMain.withUndo(() => {
+            paredit.shrinkSelection(replMain)
+            replMain.repaint();
+        })
+    },
     "Alt+Delete": () => {
         replMain.withUndo(() => {
             replMain.delete();

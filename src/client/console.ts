@@ -580,6 +580,8 @@ export class ReplConsole {
         line.append(selection);
         return line;
     }
+
+    growSelectionStack: [number, number][] = [];
 }
 
 /**

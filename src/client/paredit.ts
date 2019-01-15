@@ -285,34 +285,39 @@ export function growSelection(doc: ReplConsole, start: number = doc.selectionSta
         if(startC.getToken().type == "close") {
             if(startC.getPrevToken().type == "close") {
                 startC.backwardList();
-                doc.selectionStart = startC.offsetStart;
-                doc.selectionEnd = endC.offsetStart;
+                doc.growSelectionStack.push([doc.selectionStart = startC.offsetStart, doc.selectionEnd = endC.offsetStart]);
             } else {
                 endC = startC.previous();
-                doc.selectionStart = startC.offsetStart;
-                doc.selectionEnd = endC.offsetEnd;    
+                doc.growSelectionStack.push([doc.selectionStart = startC.offsetStart, doc.selectionEnd = endC.offsetEnd]);
             }
         } else if(startC.getToken().type == "open") {
             endC.forwardList();
-            doc.selectionStart = startC.offsetStart;
-            doc.selectionEnd = endC.offsetStart;
+            doc.growSelectionStack.push([doc.selectionStart = startC.offsetStart, doc.selectionEnd = endC.offsetStart]);
         } else {
-            doc.selectionStart = startC.offsetStart;
-            doc.selectionEnd = startC.offsetEnd;
+            doc.growSelectionStack.push([doc.selectionStart = startC.offsetStart, doc.selectionEnd = startC.offsetEnd]);
         }
     } else {
         if(startC.getPrevToken().type == "open" && endC.getToken().type == "close") {
             startC.backwardList();
             startC.backwardUpList();
             endC.forwardList();
-            doc.selectionStart = startC.offsetStart;
-            doc.selectionEnd = endC.offsetEnd;
+            doc.growSelectionStack.push([doc.selectionStart = startC.offsetStart, doc.selectionEnd = endC.offsetEnd]);
         } else {
             startC.backwardList();
             endC.forwardList();
             endC.previous();
-            doc.selectionStart = startC.offsetStart;
-            doc.selectionEnd = endC.offsetEnd;
+            doc.growSelectionStack.push([doc.selectionStart = startC.offsetStart, doc.selectionEnd = endC.offsetEnd]);
+        }
+    }
+}
+
+export function shrinkSelection(doc: ReplConsole) {
+    if(doc.growSelectionStack.length) {
+        let [start, end] = doc.growSelectionStack.pop();
+        if(start == doc.selectionStart && end == doc.selectionEnd && doc.growSelectionStack.length) {
+            [doc.selectionStart, doc.selectionEnd] = doc.growSelectionStack[doc.growSelectionStack.length-1];
+        } else {
+            doc.growSelectionStack = [];
         }
     }
 }
