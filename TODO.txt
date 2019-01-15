@@ -71,7 +71,7 @@ paredit (prepare for backporting to calva)
 
    convolute
 ============================================
-Firefox/Edge cursor positioning is hosed, in potentially the same way.
+*Firefox/Edge cursor positioning is hosed, in potentially the same way.
 ============================================
 Attach self-hosted clojurescript for giggles.
 ============================================

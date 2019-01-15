@@ -453,6 +453,9 @@ export class ReplConsole {
         // reposition the caret
         let [row, col] = this.model.getRowCol(this.selectionEnd);
         this.inputLines[row].appendChild(this.caret);
+        let style = getComputedStyle(this.inputLines[row]);
+        ctx.font = style.fontStyle+" "+style.fontSize+" "+style.fontFamily;
+
         this.caret.style.left = measureText(this.model.lines[row].text.substr(0, col)) + "px";
 
         let startLine = this.model.getRowCol(Math.min(this.lastSelectionStart, this.lastSelectionEnd, this.selectionStart, this.selectionEnd));

@@ -13,6 +13,12 @@ let hotkeys = new HotKeyTable({
             replMain.repaint();
         });
     },
+    "Alt+Shift+/": () => {
+        replMain.withUndo(() => {
+            paredit.convolute(replMain);
+            replMain.repaint();
+        });
+    },
     "Alt+Backspace": () => {
         replMain.withUndo(() => {
             replMain.backspace();
@@ -263,7 +269,7 @@ document.getElementById("input").addEventListener("keydown", e => {
 },  { capture: true })
 
 let replMain = new ReplConsole(document.getElementById("repl") as HTMLDivElement);
-replMain.insertString("(defn sqr [x]\n  (* x x))");
+replMain.insertString("[asdf sdf (b a foo what) (c) (d)]");
 replMain.repaint()
 let input = document.getElementById("input") as HTMLInputElement;
 document.getElementById("input").addEventListener("blur", e => {

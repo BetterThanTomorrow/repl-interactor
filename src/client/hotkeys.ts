@@ -18,6 +18,7 @@ key("Space", 0x20)
 key("Tab", 9)
 key("Return", 13)
 key("End", 35)
+key("/", 191)
 key("Home", 36)
 key("LeftArrow", 37)
 key("UpArrow", 38)
@@ -46,7 +47,10 @@ export function parseHotKey(key: string, fn: () => void) {
         throw new Error("Too many keys after modifiers");
     let mainKey = parts[parts.length-1];
     if(mainKey.length == 1) {
-        return new HotKey(modifiers, mainKey.toUpperCase().charCodeAt(0), fn);
+        let key = keyToId[mainKey];
+        if(key === undefined)
+            return new HotKey(modifiers, mainKey.toUpperCase().charCodeAt(0), fn);
+        return new HotKey(modifiers, key, fn)
     } else {
         let key = keyToId[mainKey];
         if(key === undefined)

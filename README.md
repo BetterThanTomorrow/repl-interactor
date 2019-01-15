@@ -57,7 +57,8 @@ This project is intended for use first off for Calva, however the goal is to gen
 - [x] Undo / Redo
 - [x] Paren matching
 - [x] Auto-indent clojure code
-- [ ] Paredit
+- [x] Paredit
+- [ ] Completions
 - [ ] Presentation layer
 
 ## Trying it out

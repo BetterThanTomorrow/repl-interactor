@@ -208,18 +208,6 @@ const parenPair = new Set(["()", "[]", "{}", '""', '\\"'])
 const openParen = new Set(["(", "[", "{", '"'])
 const closeParen = new Set([")", "]", "}", '"'])
 
-export function backslash(doc: ReplConsole, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
-    if(start != end)
-        doc.insertString('\\'); // FIXME: this will break things.
-    else {
-        if(doc.getTokenCursor().withinString()) {
-            doc.model.changeRange(start, start, '\\\\');
-            doc.selectionStart = doc.selectionEnd = start+1;
-        }
-    }
-    
-}
-
 export function backspace(doc: ReplConsole, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
     if(start != end) {
         doc.backspace();
@@ -341,4 +329,30 @@ export function raiseSexp(doc: ReplConsole, start = doc.selectionStart, end = do
         }
     }
 }
-// convolute
+
+export function convolute(doc: ReplConsole, start = doc.selectionStart, end = doc.selectionEnd) {
+    if(start == end) {
+        let cursorStart = doc.getTokenCursor(end);
+        let cursorEnd = cursorStart.clone();
+        
+        if(cursorStart.backwardList()) {
+            if(cursorEnd.forwardList()) {
+                let head = doc.model.getText(cursorStart.offsetStart, end);
+                if(cursorStart.getPrevToken().type == "open") {
+                    cursorStart.previous();
+                    let headStart = cursorStart.clone();
+                    
+                    if(headStart.backwardList() && headStart.backwardUpList()) {
+                        let headEnd = cursorStart.clone();
+                        if(headEnd.forwardList() && cursorEnd.getToken().type == "close") {
+                            doc.model.changeRange(headEnd.offsetEnd, headEnd.offsetEnd, ")");
+                            doc.model.changeRange(cursorEnd.offsetStart, cursorEnd.offsetEnd, "");
+                            doc.model.changeRange(cursorStart.offsetStart, end, "");
+                            doc.model.changeRange(headStart.offsetStart, headStart.offsetStart, "("+head);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
