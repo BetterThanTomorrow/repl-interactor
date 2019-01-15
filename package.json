@@ -5,8 +5,12 @@
   "scripts": {
     "start": "ts-node --inspect=5858 src/server/main.ts",
     "dev": "concurrently \"node ./node_modules/nodemon/bin/nodemon.js\" \"npx webpack-dev-server\"",
-    "netlify": "npx webpack --mode=production"
+    "netlify": "npx webpack --mode=production",
+    "prepublish": "npx tsc --lib es2016,dom --target es6 --outDir js src/client/index.ts -d"
   },
+  "jsnext:main": "js/index.js",
+  "main": "js/index.js",
+  "types": "js/index.d.ts",
   "author": {
     "name": "Matt Seddon",
     "email": "matt@scryetek.com"

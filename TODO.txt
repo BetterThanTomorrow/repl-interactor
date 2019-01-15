@@ -79,7 +79,8 @@ paredit (prepare for backporting to calva)
 *History up/down
 *Handle auto-scroll correctly
 *Extract main.ts into a re-usable sane component.
-
+============================================
+Build npm package for local publishing
 ============================================
 Attach self-hosted clojurescript for giggles.
 ============================================

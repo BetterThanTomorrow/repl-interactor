@@ -61,7 +61,7 @@ export class ReplConsole {
     historyIndex = -1;
     history: string[] = [];
 
-    constructor(public elem: HTMLElement) {
+    constructor(public elem: HTMLElement, public onReadLine: (x: string) => void = () => {}) {
         this.hotkeys = defaultHotkeys;
         this.input = document.createElement("input");
         this.input.style.width = "0px";
@@ -196,8 +196,6 @@ export class ReplConsole {
             e.preventDefault();
             this.readline.mainElem.scrollIntoView({ block: "end"})
         })
-
-        this.requestPrompt("user=> ")
     }
 
     printElement(element: HTMLElement) {
@@ -218,11 +216,13 @@ export class ReplConsole {
 
     submitLine() {
         let line = this.readline.model.getText(0, this.readline.model.maxOffset);
+        if(line.trim() == "")
+            return;
         this.history.push(line);
         this.historyIndex = -1;
         this.readline.freeze();
         this.input.disabled = true;
-        this.requestPrompt("user=> ")
+        this.onReadLine(line);
     }
 
     requestPrompt(prompt: string) {
