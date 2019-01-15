@@ -269,7 +269,6 @@ document.getElementById("input").addEventListener("keydown", e => {
 },  { capture: true })
 
 let replMain = new ReplConsole(document.getElementById("repl") as HTMLDivElement);
-replMain.insertString("[asdf sdf (b a foo what) (c) (d)]");
 replMain.repaint()
 let input = document.getElementById("input") as HTMLInputElement;
 document.getElementById("input").addEventListener("blur", e => {

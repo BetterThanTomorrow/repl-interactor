@@ -69,7 +69,7 @@ paredit (prepare for backporting to calva)
 
   *raise sexp
 
-   convolute
+  *convolute
 ============================================
 *Firefox/Edge cursor positioning is hosed, in potentially the same way.
 ============================================
