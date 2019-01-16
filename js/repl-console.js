@@ -456,7 +456,7 @@ export class ReplConsole {
         });
     }
     printElement(element) {
-        if (this.input.disabled) {
+        if (!this.readline || this.input.disabled) {
             this.elem.appendChild(element);
         }
         else {
@@ -481,6 +481,8 @@ export class ReplConsole {
         this.onReadLine(line);
     }
     requestPrompt(prompt) {
+        if (this.readline && !this.input.disabled)
+            return;
         this.readline = new ReplReadline(this.elem, prompt);
         this.elem.appendChild(this.input);
         this.input.disabled = false;

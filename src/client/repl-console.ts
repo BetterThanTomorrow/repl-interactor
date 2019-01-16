@@ -199,7 +199,7 @@ export class ReplConsole {
     }
 
     printElement(element: HTMLElement) {
-        if(this.input.disabled) {
+        if(!this.readline || this.input.disabled) {
             this.elem.appendChild(element);
         } else {
             this.elem.insertBefore(element, this.readline.elem);
@@ -226,6 +226,8 @@ export class ReplConsole {
     }
 
     requestPrompt(prompt: string) {
+        if(this.readline && !this.input.disabled)
+            return;
         this.readline = new ReplReadline(this.elem, prompt);
         this.elem.appendChild(this.input);
         this.input.disabled = false;
