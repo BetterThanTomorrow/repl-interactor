@@ -341,7 +341,7 @@ export class ReplConsole {
                 e.preventDefault();
             }
         });
-        this.input.addEventListener("blur", e => {
+        this.elem.addEventListener("click", e => {
             this.input.focus();
         });
         this.input.addEventListener("keydown", e => {
@@ -482,7 +482,7 @@ export class ReplConsole {
     }
     requestPrompt(prompt) {
         this.readline = new ReplReadline(this.elem, prompt);
-        this.readline.mainElem.appendChild(this.input);
+        this.elem.appendChild(this.input);
         this.input.disabled = false;
         this.input.focus();
         this.readline.mainElem.scrollIntoView({ block: "end" });

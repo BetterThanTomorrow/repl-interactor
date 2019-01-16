@@ -227,7 +227,6 @@ export class ReplConsole {
 
     requestPrompt(prompt: string) {
         this.readline = new ReplReadline(this.elem, prompt);
-        debugger
         this.elem.appendChild(this.input);
         this.input.disabled = false;
         this.input.focus();
