@@ -92,7 +92,7 @@ export class ReplConsole {
             }
         })
 
-        this.input.addEventListener("blur", e => {
+        this.elem.addEventListener("click", e => {
             this.input.focus();
         })
 
@@ -227,7 +227,8 @@ export class ReplConsole {
 
     requestPrompt(prompt: string) {
         this.readline = new ReplReadline(this.elem, prompt);
-        this.readline.mainElem.appendChild(this.input);
+        debugger
+        this.elem.appendChild(this.input);
         this.input.disabled = false;
         this.input.focus();
         this.readline.mainElem.scrollIntoView({ block: "end"})

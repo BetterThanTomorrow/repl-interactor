@@ -34,6 +34,7 @@
                 top: 0px;
                 background-color: #fff;
                 animation: 500ms ease-in-out caret-blink infinite;
+                pointer-events: none;
             }
 
             .sel-marker {
@@ -42,6 +43,7 @@
                 z-index: -1;
                 top: 0;
                 height: 100%;
+                pointer-events: none;
             }
 
             .line {
@@ -49,6 +51,7 @@
                 margin: 0;
                 padding: 0;
                 white-space: pre;
+                pointer-events: none;
             }
             
             .id {
@@ -117,10 +120,12 @@
             .prompt-wrap {
                 display: flex;
                 white-space: pre;
+                position: relative;
             }
 
             .prompt {
                 color: #888;
+                user-select: all;
             }
         </style>
         <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
