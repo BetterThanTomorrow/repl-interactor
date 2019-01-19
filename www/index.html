@@ -1,161 +1,173 @@
 <!doctype html>
 <html>
-    <head>
-        <style>
-            @import 'https://unpkg.com/firacode@1.205.0/distr/fira_code.css';
-            body {
-                background-color: #222;
-                color: #fff;
-            }
-            .output {
-                color: #ff0;
-            }
-            .repl {
-                font-family: "Fira Code", "Courier New", monospace;
-                font-weight: normal;
-                font-size: 12px;
-                letter-spacing: 0;
-                cursor: text;
-                position: relative;
+
+<head>
+    <style>
+        @import 'https://unpkg.com/firacode@1.205.0/distr/fira_code.css';
+
+        body {
+            background-color: #222;
+            color: #fff;
+        }
+
+        .output {
+            color: #ff0;
+        }
+
+        .repl {
+            font-family: "Fira Code", "Courier New", monospace;
+            font-weight: normal;
+            font-size: 12px;
+            letter-spacing: 0;
+            cursor: text;
+            position: relative;
+        }
+
+        .match {
+            border: solid 1px #777;
+            margin: -1px -1px -1px -1px;
+        }
+
+        .fail-match {
+            background-color: #f00;
+        }
+
+        .caret {
+            position: absolute;
+            height: 14px;
+            top: 0px;
+            background-color: #fff;
+            animation: 500ms ease-in-out caret-blink infinite;
+            pointer-events: none;
+        }
+
+        .sel-marker {
+            background-color: #264f78;
+            position: absolute;
+            z-index: -1;
+            top: 0;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .line {
+            position: relative;
+            margin: 0;
+            padding: 0;
+            white-space: pre;
+            pointer-events: none;
+        }
+
+        .id {
+            color: #d4d4d4;
+        }
+
+        .kw {
+            color: #9cdcfe;
+        }
+
+        .comment {
+            color: #6a9955;
+        }
+
+        .lit {
+            color: #b5cea8;
+        }
+
+        .str,
+        .str-start,
+        .str-inside,
+        .str-end {
+            color: #ce9178;
+        }
+
+        .decl {
+            color: #c586c0;
+        }
+
+        .macro {
+            color: #569cd6;
+        }
+
+        @keyframes caret-blink {
+            0% {
+                opacity: 1;
             }
 
-            .match {
-                border: solid 1px #777;
-                margin: -1px -1px -1px -1px;
+            50% {
+                opacity: 0;
             }
 
-            .fail-match {
-                background-color: #f00;
+            100% {
+                opacity: 1;
             }
+        }
 
-            .caret {
-                position: absolute;
-                height: 14px;
-                top: 0px;
-                background-color: #fff;
-                animation: 500ms ease-in-out caret-blink infinite;
-                pointer-events: none;
-            }
+        .info-box {
+            position: absolute;
+            right: 0;
+            top: 0;
+            font-size: 12px;
+            font-family: sans-serif;
+        }
 
-            .sel-marker {
-                background-color: #264f78;                
-                position: absolute;
-                z-index: -1;
-                top: 0;
-                height: 100%;
-                pointer-events: none;
-            }
+        .info-box p {
+            color: #999;
+            margin: 0;
+        }
 
-            .line {
-                position: relative;
-                margin: 0;
-                padding: 0;
-                white-space: pre;
-                pointer-events: none;
-            }
-            
-            .id {
-                color: #d4d4d4;
-            }
-            
-            .kw {
-                color: #9cdcfe;
-            }
+        .info-box p b {
+            color: #ccf;
+        }
 
-            .comment {
-                color: #6a9955;
-            }
-
-            .lit {
-                color: #b5cea8;
-            }
-
-            .str, .str-start, .str-inside, .str-end {
-                color: #ce9178;
-            }
-
-            .decl {
-                color: #c586c0;
-            }
-
-            .macro {
-                color: #569cd6;
-            }
-
-            @keyframes caret-blink {
-                0% {
-                    opacity: 1;
-                }
-                50% {
-                    opacity: 0;
-                }
-                100% {
-                    opacity: 1;
-                }
-            }
-
+        @media only screen and (max-width: 600px) {
             .info-box {
-                position: absolute;
-                right: 0;
-                top: 0;
-                font-size: 12px;
-                font-family: sans-serif;
+                display: none;
             }
+        }
 
-            .info-box p {
-                color: #999;
-                margin: 0;
-            }
+        .prompt-wrap {
+            display: flex;
+            white-space: pre;
+            position: relative;
+            align-items: baseline;
+        }
 
-            .info-box p b {
-                color: #ccf;
-            }
+        .prompt {
+            color: #888;
+            user-select: all;
+        }
+    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+</head>
 
-            @media only screen and (max-width: 600px) {
-                .info-box {
-                    display: none;
-                }
-            }
+<body>
+    <div class="info-box">
+        <h3>Keys</h3>
 
-            .prompt-wrap {
-                display: flex;
-                white-space: pre;
-                position: relative;
-            }
+        <p><b>Alt + Up</b> - History up</p>
+        <p><b>Alt + Down</b> - History down</p>
+        <p><b>Alt + Shift + 9</b> - Wrap round</p>
+        <p><b>Alt + [</b> - Wrap square</p>
+        <p><b>Alt + Shift + [</b> - Wrap curly</p>
+        <p><b>Ctrl + Alt + Shift + Right</b> - Forward slurp sexp</p>
+        <p><b>Ctrl + Alt + Shift + Left</b> - Backward slurp sexp</p>
+        <p><b>Ctrl + Alt + Left</b> - Forward barf sexp</p>
+        <p><b>Ctrl + Alt + Right</b> - Backward barf sexp</p>
+        <p><b>Alt + S</b> - Splice sexp</p>
+        <p><b>Alt + Left</b> - Splice sexp killing backwards</p>
+        <p><b>Alt + Right</b> - Splice sexp killing forwards</p>
+        <p><b>Alt + Shift + S</b> - Split sexp</p>
+        <p><b>Alt + Shift + J</b> - Join sexp</p>
+        <p><b>Alt + R</b> - Raise sexp</p>
+        <p><b>Ctrl + Shift + Space</b> - Grow selection</p>
+        <p><b>Ctrl + Alt + Shift + Space</b> - Shrink selection</p>
+        <p><b>Alt + Shift + /</b> - Convolute sexp</p>
 
-            .prompt {
-                color: #888;
-                user-select: all;
-            }
-        </style>
-        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
-    </head>
-    <body>
-        <div class="info-box">
-            <h3>Keys</h3>
+    </div>
+    <div class="repl">
+    </div>
+</body>
+<script src="main.js"></script>
 
-            <p><b>Alt + Up</b> - History up</p>
-            <p><b>Alt + Down</b> - History down</p>
-            <p><b>Alt + Shift + 9</b> - Wrap round</p>
-            <p><b>Alt + [</b> - Wrap square</p>
-            <p><b>Alt + Shift + [</b> - Wrap curly</p>
-            <p><b>Ctrl + Alt + Shift + Right</b> - Forward slurp sexp</p>
-            <p><b>Ctrl + Alt + Shift + Left</b> - Backward slurp sexp</p>
-            <p><b>Ctrl + Alt + Left</b> - Forward barf sexp</p>
-            <p><b>Ctrl + Alt + Right</b> - Backward barf sexp</p>
-            <p><b>Alt + S</b> - Splice sexp</p>
-            <p><b>Alt + Left</b> - Splice sexp killing backwards</p>
-            <p><b>Alt + Right</b> - Splice sexp killing forwards</p>
-            <p><b>Alt + Shift + S</b> - Split sexp</p>
-            <p><b>Alt + Shift + J</b> - Join sexp</p>
-            <p><b>Alt + R</b> - Raise sexp</p>
-            <p><b>Ctrl + Shift + Space</b> - Grow selection</p>
-            <p><b>Ctrl + Alt + Shift + Space</b> - Shrink selection</p>
-            <p><b>Alt + Shift + /</b> - Convolute sexp</p>
-            
-        </div>
-        <div class="repl">
-        </div>
-    </body>
-    <script src="main.js"></script>
 </html>
