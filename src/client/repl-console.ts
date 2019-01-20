@@ -2,6 +2,7 @@ import { ReplReadline } from "./readline";
 import * as paredit from "./paredit";
 import { getIndent } from "./indent";
 import { HotKeyTable } from "./hotkeys";
+import './styles.scss';
 
 const defaultHotkeys = new HotKeyTable<ReplConsole>({
     "Alt+R": "raise-sexp",

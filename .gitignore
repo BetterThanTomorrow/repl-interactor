@@ -4,8 +4,8 @@ www/bundle.js.gz
 www/bundle.js.map
 doc
 build
-.vscode
 *~
 .idea
 www/glTF-Sample-Models
 js/
+.DS_Store

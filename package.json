@@ -6,7 +6,8 @@
     "start": "ts-node --inspect=5858 src/server/main.ts",
     "dev": "concurrently \"node ./node_modules/nodemon/bin/nodemon.js\" \"npx webpack-dev-server\"",
     "netlify": "npx webpack --mode=production",
-    "prepublish": "npx tsc --lib es2016,dom --target es6 --outDir js src/client/index.ts -d"
+    "copy-styles": "cp src/client/styles.scss ./js",
+    "prepublish": "npx tsc --lib es2016,dom --target es6 --outDir js src/client/index.ts -d && npm run copy-styles"
   },
   "jsnext:main": "js/index.js",
   "main": "js/index.js",
@@ -22,6 +23,8 @@
     "closure-webpack-plugin": "^2.0.0-rc.15",
     "concurrently": "^4.1.0",
     "css-loader": "^2.1.0",
+    "google-closure-compiler": "^20181209.0.0-webpack-beta",
+    "node-sass": "^4.11.0",
     "nodemon": "^1.18.9",
     "raw-loader": "^1.0.0",
     "sass-loader": "^7.1.0",
