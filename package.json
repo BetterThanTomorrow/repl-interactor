@@ -1,7 +1,7 @@
 {
-  "name": "repl-interactor",
+  "name": "@calva/repl-interactor",
   "version": "0.0.1",
-  "description": "",
+  "description": "The core of Calva's REPL window",
   "scripts": {
     "start": "ts-node --inspect=5858 src/server/main.ts",
     "dev": "concurrently \"node ./node_modules/nodemon/bin/nodemon.js\" \"npx webpack-dev-server\"",
