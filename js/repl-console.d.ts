@@ -12,6 +12,7 @@ export declare class ReplConsole {
     printElement(element: HTMLElement): void;
     print(text: string): void;
     setText(text: string): void;
+    setNs(ns: string): void;
     submitLine(trigger?: boolean): void;
     requestPrompt(prompt: string): void;
     commands: {

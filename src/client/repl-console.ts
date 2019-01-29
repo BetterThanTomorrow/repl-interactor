@@ -219,6 +219,8 @@ export class ReplConsole {
         this.readline.repaint();
     }
 
+    setNs(ns: string) {}
+
     submitLine(trigger = true) {
         let line = this.readline.model.getText(0, this.readline.model.maxOffset);
         if(line.trim() == "")

@@ -560,16 +560,17 @@ export class ReplReadline {
     }
 
     public mainElem: HTMLElement;
+    public promptElem: HTMLElement;
     elem: HTMLElement;
     constructor(public parent: HTMLElement, prompt: string) {
         let wrap = this.elem = document.createElement("div");
         wrap.className = "prompt-wrap"
-        let promptElem = document.createElement("div");
-        promptElem.className = "prompt"
-        promptElem.textContent = prompt;
+        this.promptElem = document.createElement("div");
+        this.promptElem.className = "prompt"
+        this.promptElem.textContent = prompt;
 
         this.mainElem = document.createElement("div");
-        wrap.appendChild(promptElem);
+        wrap.appendChild(this.promptElem);
         wrap.appendChild(this.mainElem);
 
         parent.appendChild(wrap);

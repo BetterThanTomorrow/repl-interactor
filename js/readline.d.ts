@@ -159,6 +159,7 @@ export declare class ReplReadline {
     private mouseUp;
     private mouseDown;
     mainElem: HTMLElement;
+    promptElem: HTMLElement;
     elem: HTMLElement;
     constructor(parent: HTMLElement, prompt: string);
     private makeLine;
