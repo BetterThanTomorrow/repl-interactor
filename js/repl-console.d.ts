@@ -11,7 +11,8 @@ export declare class ReplConsole {
     constructor(elem: HTMLElement, onReadLine?: (x: string) => void);
     printElement(element: HTMLElement): void;
     print(text: string): void;
-    submitLine(): void;
+    setText(text: string): void;
+    submitLine(trigger?: boolean): void;
     requestPrompt(prompt: string): void;
     commands: {
         "raise-sexp": () => void;

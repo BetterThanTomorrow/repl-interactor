@@ -214,7 +214,12 @@ export class ReplConsole {
         this.printElement(el);
     }
 
-    submitLine() {
+    setText(text: string) {
+        this.readline.model.changeRange(0, this.readline.model.maxOffset, text)
+        this.readline.repaint();
+    }
+
+    submitLine(trigger = true) {
         let line = this.readline.model.getText(0, this.readline.model.maxOffset);
         if(line.trim() == "")
             return;
@@ -222,7 +227,8 @@ export class ReplConsole {
         this.historyIndex = -1;
         this.readline.freeze();
         this.input.disabled = true;
-        this.onReadLine(line);
+        if(trigger)
+            this.onReadLine(line);
     }
 
     requestPrompt(prompt: string) {
