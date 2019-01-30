@@ -12,8 +12,9 @@ function measureText(str) {
  * A syntax-highlighting text editor.
  */
 export class ReplReadline {
-    constructor(parent, prompt) {
+    constructor(parent, prompt, input) {
         this.parent = parent;
+        this.input = input;
         /** The offset of the start of the selection into the document. */
         this._selectionStart = 0;
         /** The offset of the end of the selection into the document. */
@@ -49,16 +50,19 @@ export class ReplReadline {
             window.addEventListener("mousemove", this.mouseDrag);
             window.addEventListener("mouseup", this.mouseUp);
         };
+        this.focus = (e) => { e.preventDefault(); this.input.focus(); };
         this.growSelectionStack = [];
-        let wrap = this.elem = document.createElement("div");
-        wrap.className = "prompt-wrap";
+        this.wrap = this.elem = document.createElement("div");
+        this.wrap.className = "prompt-wrap";
+        this.wrap.addEventListener("mousedown", this.focus);
+        this.wrap.addEventListener("touchstart", this.focus);
         this.promptElem = document.createElement("div");
         this.promptElem.className = "prompt";
         this.promptElem.textContent = prompt;
         this.mainElem = document.createElement("div");
-        wrap.appendChild(this.promptElem);
-        wrap.appendChild(this.mainElem);
-        parent.appendChild(wrap);
+        this.wrap.appendChild(this.promptElem);
+        this.wrap.appendChild(this.mainElem);
+        parent.appendChild(this.wrap);
         this.mainElem.addEventListener("mousedown", this.mouseDown);
         this.caret = document.createElement("div");
         this.caret.className = "caret";
@@ -545,6 +549,8 @@ export class ReplReadline {
         this.mainElem.removeEventListener("mousedown", this.mouseDown);
         window.removeEventListener("mouseup", this.mouseUp);
         window.removeEventListener("mousemove", this.mouseDrag);
+        this.wrap.removeEventListener("mousedown", this.focus);
+        this.wrap.removeEventListener("touchstart", this.focus);
         this.selectionStart = this.selectionEnd = this.model.maxOffset;
         this.repaint();
         this.caret.parentElement.removeChild(this.caret);

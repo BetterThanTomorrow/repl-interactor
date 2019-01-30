@@ -69,6 +69,14 @@ export class ReplConsole {
         this.input.style.position = "fixed";
         this.input.style.opacity = "0";
 
+        this.input.addEventListener("focus", () => {
+            this.readline.mainElem.classList.add("is-focused")
+        })
+
+        this.input.addEventListener("blur", () => {
+            this.readline.mainElem.classList.remove("is-focused")
+        })
+
         document.addEventListener("cut", e => {
             if(document.activeElement == this.input) {
                 e.clipboardData.setData("text/plain", this.readline.model.getText(this.readline.selectionStart, this.readline.selectionEnd));
@@ -90,10 +98,6 @@ export class ReplConsole {
                 this.readline.insertString(e.clipboardData.getData("text/plain"));
                 e.preventDefault();
             }
-        })
-
-        this.elem.addEventListener("click", e => {
-            this.input.focus();
         })
 
         this.input.addEventListener("keydown", e => {
@@ -236,7 +240,7 @@ export class ReplConsole {
     requestPrompt(prompt: string) {
         if(this.readline && !this.input.disabled)
             return;
-        this.readline = new ReplReadline(this.elem, prompt);
+        this.readline = new ReplReadline(this.elem, prompt, this.input);
         this.elem.appendChild(this.input);
         this.input.disabled = false;
         this.input.focus();

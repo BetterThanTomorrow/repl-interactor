@@ -5,6 +5,7 @@ import { TokenCursor, LispTokenCursor } from "./token-cursor";
  */
 export declare class ReplReadline {
     parent: HTMLElement;
+    input: HTMLInputElement;
     /** The offset of the start of the selection into the document. */
     private _selectionStart;
     /** Returns the offset of the start of the selection. */
@@ -158,10 +159,12 @@ export declare class ReplReadline {
     private mouseDrag;
     private mouseUp;
     private mouseDown;
+    focus: (e: Event) => void;
     mainElem: HTMLElement;
     promptElem: HTMLElement;
     elem: HTMLElement;
-    constructor(parent: HTMLElement, prompt: string);
+    wrap: HTMLElement;
+    constructor(parent: HTMLElement, prompt: string, input: HTMLInputElement);
     private makeLine;
     canReturn(): boolean;
     freeze(): void;

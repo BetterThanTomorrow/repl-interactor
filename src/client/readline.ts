@@ -551,6 +551,7 @@ export class ReplReadline {
 
     private mouseDown = (e: MouseEvent) => {
         e.preventDefault();
+        
         this.selectionStart = this.selectionEnd = this.pageToOffset(e.pageX, e.pageY)
         this.caretX = this.model.getRowCol(this.selectionEnd)[1];
         this.repaint();
@@ -559,21 +560,27 @@ export class ReplReadline {
         window.addEventListener("mouseup", this.mouseUp)
     }
 
+    focus = (e: Event) => { e.preventDefault(); this.input.focus() };
+
     public mainElem: HTMLElement;
     public promptElem: HTMLElement;
     elem: HTMLElement;
-    constructor(public parent: HTMLElement, prompt: string) {
-        let wrap = this.elem = document.createElement("div");
-        wrap.className = "prompt-wrap"
+    wrap: HTMLElement;
+
+    constructor(public parent: HTMLElement, prompt: string, public input: HTMLInputElement) {
+        this.wrap = this.elem = document.createElement("div");
+        this.wrap.className = "prompt-wrap"
+        this.wrap.addEventListener("mousedown", this.focus);
+        this.wrap.addEventListener("touchstart", this.focus);
         this.promptElem = document.createElement("div");
         this.promptElem.className = "prompt"
         this.promptElem.textContent = prompt;
 
         this.mainElem = document.createElement("div");
-        wrap.appendChild(this.promptElem);
-        wrap.appendChild(this.mainElem);
+        this.wrap.appendChild(this.promptElem);
+        this.wrap.appendChild(this.mainElem);
 
-        parent.appendChild(wrap);
+        parent.appendChild(this.wrap);
         this.mainElem.addEventListener("mousedown", this.mouseDown)
         
         this.caret = document.createElement("div");
@@ -608,6 +615,9 @@ export class ReplReadline {
         this.mainElem.removeEventListener("mousedown", this.mouseDown)
         window.removeEventListener("mouseup", this.mouseUp)
         window.removeEventListener("mousemove", this.mouseDrag);
+        this.wrap.removeEventListener("mousedown", this.focus);
+        this.wrap.removeEventListener("touchstart", this.focus);
+
         this.selectionStart = this.selectionEnd = this.model.maxOffset;
         this.repaint();
         this.caret.parentElement.removeChild(this.caret);
