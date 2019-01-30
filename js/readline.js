@@ -33,6 +33,7 @@ export class ReplReadline {
          * True if we are rendering a matched parenthesis.
          */
         this.matchingParen = false;
+        this._repaintListeners = [];
         this.mouseDrag = (e) => {
             this.selectionEnd = this.pageToOffset(e.pageX, e.pageY);
             this.caretX = this.model.getRowCol(this.selectionEnd)[1];
@@ -409,6 +410,9 @@ export class ReplReadline {
         if (cursor && this.inputLines[cursor.line])
             return this.inputLines[cursor.line].querySelector(".content").children.item(cursor.token);
     }
+    addOnRepaintListener(fn) {
+        this._repaintListeners.push(fn);
+    }
     /**
      * Update the DOM for the editor. After a change in the model or local editor information (e.g. cursor position), we apply the changes,
      * attempting to minimize the work.
@@ -511,6 +515,11 @@ export class ReplReadline {
         this.lastSelectionStart = this.selectionStart;
         this.lastSelectionEnd = this.selectionEnd;
         this.updateParenMatches();
+        this._repaintListeners.forEach(x => x());
+    }
+    getCaretOnScreen() {
+        let rect = this.caret.getBoundingClientRect();
+        return { x: rect.left, y: rect.top + window.scrollY, width: rect.width, height: rect.height };
     }
     /** Given a (pageX, pageY) pixel coordinate, returns the character offset into this document. */
     pageToOffset(pageX, pageY) {
@@ -562,6 +571,7 @@ export class ReplReadline {
 }
 /**
  * A set of tokens which should be highlighted as macros.
+ * this is, of course, a really stupid way of doing it.
  */
 const macros = new Set(["if", "let", "do", "while", "cond", "case"]);
 /**

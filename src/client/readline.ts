@@ -406,6 +406,11 @@ export class ReplReadline {
             return this.inputLines[cursor.line].querySelector(".content").children.item(cursor.token) as HTMLElement
     }
 
+    private _repaintListeners = [];
+    addOnRepaintListener(fn: () => void) {
+        this._repaintListeners.push(fn);
+    }
+
     /**
      * Update the DOM for the editor. After a change in the model or local editor information (e.g. cursor position), we apply the changes,
      * attempting to minimize the work.
@@ -513,6 +518,12 @@ export class ReplReadline {
         this.lastSelectionEnd = this.selectionEnd;
 
         this.updateParenMatches()
+        this._repaintListeners.forEach(x => x());
+    }
+    
+    getCaretOnScreen() {
+        let rect = this.caret.getBoundingClientRect();
+        return { x: rect.left, y: rect.top+window.scrollY, width: rect.width, height: rect.height};
     }
 
     /** Given a (pageX, pageY) pixel coordinate, returns the character offset into this document. */
@@ -633,6 +644,7 @@ export class ReplReadline {
 
 /**
  * A set of tokens which should be highlighted as macros.
+ * this is, of course, a really stupid way of doing it.
  */
 const macros = new Set(["if", "let", "do", "while", "cond", "case"]);
 

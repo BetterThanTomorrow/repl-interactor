@@ -149,11 +149,19 @@ export declare class ReplReadline {
      * @param cursor
      */
     private getElementForToken;
+    private _repaintListeners;
+    addOnRepaintListener(fn: () => void): void;
     /**
      * Update the DOM for the editor. After a change in the model or local editor information (e.g. cursor position), we apply the changes,
      * attempting to minimize the work.
      */
     repaint(): void;
+    getCaretOnScreen(): {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    };
     /** Given a (pageX, pageY) pixel coordinate, returns the character offset into this document. */
     pageToOffset(pageX: number, pageY: number): number;
     private mouseDrag;

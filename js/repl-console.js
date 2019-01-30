@@ -56,6 +56,7 @@ export class ReplConsole {
         this.onReadLine = onReadLine;
         this.historyIndex = -1;
         this.history = [];
+        this.onRepaint = () => { };
         this.commands = {
             "raise-sexp": () => {
                 this.readline.withUndo(() => {
@@ -477,7 +478,6 @@ export class ReplConsole {
         this.readline.model.changeRange(0, this.readline.model.maxOffset, text);
         this.readline.repaint();
     }
-    setNs(ns) { }
     submitLine(trigger = true) {
         let line = this.readline.model.getText(0, this.readline.model.maxOffset);
         if (line.trim() == "")
@@ -485,7 +485,6 @@ export class ReplConsole {
         this.history.push(line);
         this.historyIndex = -1;
         this.readline.freeze();
-        this.input.disabled = true;
         if (trigger)
             this.onReadLine(line);
     }
@@ -493,6 +492,7 @@ export class ReplConsole {
         if (this.readline && !this.input.disabled)
             return;
         this.readline = new ReplReadline(this.elem, prompt, this.input);
+        this.readline.addOnRepaintListener(this.onRepaint);
         this.elem.appendChild(this.input);
         this.input.disabled = false;
         this.input.focus();

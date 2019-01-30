@@ -223,8 +223,6 @@ export class ReplConsole {
         this.readline.repaint();
     }
 
-    setNs(ns: string) {}
-
     submitLine(trigger = true) {
         let line = this.readline.model.getText(0, this.readline.model.maxOffset);
         if(line.trim() == "")
@@ -240,12 +238,14 @@ export class ReplConsole {
         if(this.readline && !this.input.disabled)
             return;
         this.readline = new ReplReadline(this.elem, prompt, this.input);
+        this.readline.addOnRepaintListener(this.onRepaint);
         this.elem.appendChild(this.input);
         this.input.disabled = false;
         this.input.focus();
         this.readline.mainElem.scrollIntoView({ block: "end"})
     }
     
+    onRepaint = () => {};
 
     commands = {
         "raise-sexp": () => {
