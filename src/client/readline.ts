@@ -617,6 +617,7 @@ export class ReplReadline {
         window.removeEventListener("mousemove", this.mouseDrag);
         this.wrap.removeEventListener("mousedown", this.focus);
         this.wrap.removeEventListener("touchstart", this.focus);
+        this.input.disabled = true;
 
         this.selectionStart = this.selectionEnd = this.model.maxOffset;
         this.repaint();
