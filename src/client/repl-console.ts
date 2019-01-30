@@ -232,7 +232,6 @@ export class ReplConsole {
         this.history.push(line);
         this.historyIndex = -1;
         this.readline.freeze();
-        this.input.disabled = true;
         if(trigger)
             this.onReadLine(line);
     }
