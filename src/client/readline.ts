@@ -11,10 +11,38 @@ function measureText(str: string) {
     return ctx.measureText(str).width;
 }
 
+export type CompletionEvent = ClearCompletion | ShowCompletion;
+
+interface ClearCompletion {
+    type: "clear";
+}
+
+interface ShowCompletion {
+    type: "show"
+    position: number;
+    toplevel: string;
+}
+
+export type CompletionListener = (c: CompletionEvent) => void;
+
 /**
  * A syntax-highlighting text editor.
  */
 export class ReplReadline {
+    /** Event listeners for completion */
+    private _completionListeners: CompletionListener[] = [];
+
+    addCompletionListener(c: CompletionListener) {
+        if(this._completionListeners.indexOf(c) == -1)
+            this._completionListeners.push(c);
+    }
+
+    removeCompletionListener(c: CompletionListener) {
+        let idx = this._completionListeners.indexOf(c);
+        if(idx != -1)
+            this._completionListeners.splice(idx, 1);
+    }
+
     /** The offset of the start of the selection into the document. */
     private _selectionStart: number = 0;
 
@@ -120,12 +148,26 @@ export class ReplReadline {
         });
     }
 
+    clearCompletion() {
+        let evt: CompletionEvent = { type: "clear" }
+        this._completionListeners.forEach(x => x(evt));
+    }
+
+    maybeShowCompletion() {
+        if(this.getTokenCursor().offsetStart == this.selectionEnd && !this.getTokenCursor().previous().withinWhitespace()) {
+            let evt: CompletionEvent = { type: "show", position: this.selectionEnd, toplevel: this.model.getText(0, this.model.maxOffset) }
+            this._completionListeners.forEach(x => x(evt));
+        } else
+            this.clearCompletion();
+    }
+
     /**
      * Moves the caret left one character, using text editor semantics.
      * 
      * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
      */
     caretLeft(clear: boolean = true) {
+        this.clearCompletion();
         if(clear && this.selectionStart != this.selectionEnd) {
             if(this.selectionStart < this.selectionEnd)
                 this.selectionEnd = this.selectionStart;
@@ -146,6 +188,7 @@ export class ReplReadline {
      * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
      */
     caretRight(clear: boolean = true) {
+        this.clearCompletion();
         if(clear && this.selectionStart != this.selectionEnd) {
             if(this.selectionStart > this.selectionEnd)
                 this.selectionEnd = this.selectionStart;
@@ -166,6 +209,7 @@ export class ReplReadline {
      * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
      */
     caretHomeAll(clear: boolean = true) {
+        this.clearCompletion();
         this.selectionEnd = 0;
         if(clear)
             this.selectionStart = this.selectionEnd;
@@ -179,6 +223,7 @@ export class ReplReadline {
      * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
      */
     caretEndAll(clear: boolean = true) {
+        this.clearCompletion();
         this.selectionEnd = this.model.maxOffset;
         if(clear)
             this.selectionStart = this.selectionEnd;
@@ -192,6 +237,7 @@ export class ReplReadline {
      * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
      */
     caretHome(clear: boolean = true) {
+        this.clearCompletion();
         let [row, col] = this.model.getRowCol(this.selectionEnd);
         this.selectionEnd = this.selectionEnd-col;
         if(clear)
@@ -206,6 +252,7 @@ export class ReplReadline {
      * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
      */
     caretEnd(clear: boolean = true) {
+        this.clearCompletion();
         let [row, col] = this.model.getRowCol(this.selectionEnd);
         this.selectionEnd = this.selectionEnd-col + this.model.lines[row].text.length;
         if(clear)
@@ -220,6 +267,7 @@ export class ReplReadline {
      * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
      */
     caretUp(clear: boolean = true) {
+        this.clearCompletion();
         let [row, col] = this.model.getRowCol(this.selectionEnd);
         if(row > 0) {
             let len = this.model.lines[row-1].text.length;
@@ -238,6 +286,7 @@ export class ReplReadline {
      * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
      */
     caretDown(clear: boolean = true) {
+        this.clearCompletion();
         let [row, col] = this.model.getRowCol(this.selectionEnd);
         if(row < this.model.lines.length-1) {
             let len = this.model.lines[row+1].text.length;

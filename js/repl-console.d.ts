@@ -1,4 +1,4 @@
-import { ReplReadline } from "./readline";
+import { ReplReadline, CompletionListener } from "./readline";
 import { HotKeyTable } from "./hotkeys";
 export declare class ReplConsole {
     elem: HTMLElement;
@@ -8,6 +8,10 @@ export declare class ReplConsole {
     hotkeys: HotKeyTable<ReplConsole>;
     historyIndex: number;
     history: string[];
+    /** Event listeners for completion */
+    private _completionListeners;
+    addCompletionListener(c: CompletionListener): void;
+    removeCompletionListener(c: CompletionListener): void;
     constructor(elem: HTMLElement, onReadLine?: (x: string) => void);
     printElement(element: HTMLElement): void;
     print(text: string): void;

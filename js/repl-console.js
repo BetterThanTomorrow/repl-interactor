@@ -56,6 +56,8 @@ export class ReplConsole {
         this.onReadLine = onReadLine;
         this.historyIndex = -1;
         this.history = [];
+        /** Event listeners for completion */
+        this._completionListeners = [];
         this.onRepaint = () => { };
         this.commands = {
             "raise-sexp": () => {
@@ -326,6 +328,7 @@ export class ReplConsole {
             this.readline.mainElem.classList.add("is-focused");
         });
         this.input.addEventListener("blur", () => {
+            this.readline.clearCompletion();
             this.readline.mainElem.classList.remove("is-focused");
         });
         document.addEventListener("cut", e => {
@@ -343,6 +346,7 @@ export class ReplConsole {
         });
         document.addEventListener("paste", e => {
             if (document.activeElement == this.input) {
+                this.readline.clearCompletion();
                 this.readline.model.undoManager.insertUndoStop();
                 this.readline.insertString(e.clipboardData.getData("text/plain"));
                 e.preventDefault();
@@ -366,6 +370,7 @@ export class ReplConsole {
                     case 13:
                         if (this.readline.canReturn()) {
                             this.submitLine();
+                            this.readline.clearCompletion();
                         }
                         else {
                             this.readline.model.undoManager.insertUndoStop();
@@ -387,6 +392,7 @@ export class ReplConsole {
                     paredit.stringQuote(this.readline);
                     this.readline.repaint();
                 });
+                this.readline.clearCompletion();
                 e.preventDefault();
             }
             else if (this.input.value == "(") {
@@ -394,6 +400,7 @@ export class ReplConsole {
                     paredit.open(this.readline, "()");
                     this.readline.repaint();
                 });
+                this.readline.clearCompletion();
                 e.preventDefault();
             }
             else if (this.input.value == "[") {
@@ -401,6 +408,7 @@ export class ReplConsole {
                     paredit.open(this.readline, "[]");
                     this.readline.repaint();
                 });
+                this.readline.clearCompletion();
                 e.preventDefault();
             }
             else if (this.input.value == "{") {
@@ -408,6 +416,7 @@ export class ReplConsole {
                     paredit.open(this.readline, "{}");
                     this.readline.repaint();
                 });
+                this.readline.clearCompletion();
                 e.preventDefault();
             }
             else if (this.input.value == "{") {
@@ -415,6 +424,7 @@ export class ReplConsole {
                     paredit.open(this.readline, "{}");
                     this.readline.repaint();
                 });
+                this.readline.clearCompletion();
                 e.preventDefault();
             }
             else if (this.input.value == ")") {
@@ -422,6 +432,7 @@ export class ReplConsole {
                     paredit.close(this.readline, ")");
                     this.readline.repaint();
                 });
+                this.readline.clearCompletion();
                 e.preventDefault();
             }
             else if (this.input.value == "]") {
@@ -429,6 +440,7 @@ export class ReplConsole {
                     paredit.close(this.readline, "]");
                     this.readline.repaint();
                 });
+                this.readline.clearCompletion();
                 e.preventDefault();
             }
             else if (this.input.value == "}") {
@@ -436,6 +448,7 @@ export class ReplConsole {
                     paredit.close(this.readline, "}");
                     this.readline.repaint();
                 });
+                this.readline.clearCompletion();
                 e.preventDefault();
             }
             else if (this.input.value == "\n") {
@@ -449,15 +462,26 @@ export class ReplConsole {
                     for (let i = 0; i < indent; i++)
                         istr += " ";
                     this.readline.insertString("\n" + istr);
+                    this.readline.clearCompletion();
                 }
             }
             else {
                 this.readline.insertString(this.input.value);
+                this.readline.maybeShowCompletion();
             }
             this.input.value = "";
             e.preventDefault();
             this.readline.mainElem.scrollIntoView({ block: "end" });
         });
+    }
+    addCompletionListener(c) {
+        if (this._completionListeners.indexOf(c) == -1)
+            this._completionListeners.push(c);
+    }
+    removeCompletionListener(c) {
+        let idx = this._completionListeners.indexOf(c);
+        if (idx != -1)
+            this._completionListeners.splice(idx, 1);
     }
     printElement(element) {
         if (!this.readline || this.input.disabled) {
@@ -492,7 +516,7 @@ export class ReplConsole {
         if (this.readline && !this.input.disabled)
             return;
         this.readline = new ReplReadline(this.elem, prompt, this.input);
-        this.readline.addOnRepaintListener(this.onRepaint);
+        this.readline.addCompletionListener(e => this._completionListeners.forEach(listener => listener(e)));
         this.elem.appendChild(this.input);
         this.input.disabled = false;
         this.input.focus();

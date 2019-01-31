@@ -1,11 +1,25 @@
 import { LineInputModel } from "./model";
 import { TokenCursor, LispTokenCursor } from "./token-cursor";
+export declare type CompletionEvent = ClearCompletion | ShowCompletion;
+interface ClearCompletion {
+    type: "clear";
+}
+interface ShowCompletion {
+    type: "show";
+    position: number;
+    toplevel: string;
+}
+export declare type CompletionListener = (c: CompletionEvent) => void;
 /**
  * A syntax-highlighting text editor.
  */
 export declare class ReplReadline {
     parent: HTMLElement;
     input: HTMLInputElement;
+    /** Event listeners for completion */
+    private _completionListeners;
+    addCompletionListener(c: CompletionListener): void;
+    removeCompletionListener(c: CompletionListener): void;
     /** The offset of the start of the selection into the document. */
     private _selectionStart;
     /** Returns the offset of the start of the selection. */
@@ -52,6 +66,8 @@ export declare class ReplReadline {
      * @param text the text to insert
      */
     insertString(text: string): void;
+    clearCompletion(): void;
+    maybeShowCompletion(): void;
     /**
      * Moves the caret left one character, using text editor semantics.
      *
@@ -179,3 +195,4 @@ export declare class ReplReadline {
     doReturn(): void;
     growSelectionStack: [number, number][];
 }
+export {};

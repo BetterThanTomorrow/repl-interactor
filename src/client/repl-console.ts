@@ -1,4 +1,4 @@
-import { ReplReadline } from "./readline";
+import { ReplReadline, CompletionListener } from "./readline";
 import * as paredit from "./paredit";
 import { getIndent } from "./indent";
 import { HotKeyTable } from "./hotkeys";
@@ -61,6 +61,20 @@ export class ReplConsole {
     historyIndex = -1;
     history: string[] = [];
 
+    /** Event listeners for completion */
+    private _completionListeners: CompletionListener[] = [];
+
+    addCompletionListener(c: CompletionListener) {
+        if(this._completionListeners.indexOf(c) == -1)
+            this._completionListeners.push(c);
+    }
+
+    removeCompletionListener(c: CompletionListener) {
+        let idx = this._completionListeners.indexOf(c);
+        if(idx != -1)
+            this._completionListeners.splice(idx, 1);
+    }
+
     constructor(public elem: HTMLElement, public onReadLine: (x: string) => void = () => {}) {
         this.hotkeys = defaultHotkeys;
         this.input = document.createElement("input");
@@ -74,6 +88,7 @@ export class ReplConsole {
         })
 
         this.input.addEventListener("blur", () => {
+            this.readline.clearCompletion();
             this.readline.mainElem.classList.remove("is-focused")
         })
 
@@ -94,6 +109,7 @@ export class ReplConsole {
         
         document.addEventListener("paste", e => {
             if(document.activeElement == this.input) {
+                this.readline.clearCompletion();
                 this.readline.model.undoManager.insertUndoStop()
                 this.readline.insertString(e.clipboardData.getData("text/plain"));
                 e.preventDefault();
@@ -117,6 +133,7 @@ export class ReplConsole {
                     case 13:
                         if(this.readline.canReturn()) {
                             this.submitLine()
+                            this.readline.clearCompletion();
                         } else {
                             this.readline.model.undoManager.insertUndoStop();
                             let indent = getIndent(this.readline, this.readline.selectionEnd);
@@ -139,48 +156,56 @@ export class ReplConsole {
                     paredit.stringQuote(this.readline)
                     this.readline.repaint()
                 })
+                this.readline.clearCompletion();
                 e.preventDefault();
             } else if(this.input.value == "(") {
                 this.readline.withUndo(() => {
                     paredit.open(this.readline, "()");
                     this.readline.repaint();
                 })
+                this.readline.clearCompletion();
                 e.preventDefault();
             } else if(this.input.value == "[") {
                 this.readline.withUndo(() => {
                     paredit.open(this.readline, "[]");
                     this.readline.repaint();
                 })
+                this.readline.clearCompletion();
                 e.preventDefault();
             } else if(this.input.value == "{") {
                 this.readline.withUndo(() => {
                     paredit.open(this.readline, "{}");
                     this.readline.repaint();
                 })
+                this.readline.clearCompletion();
                 e.preventDefault();
             } else if(this.input.value == "{") {
                 this.readline.withUndo(() => {
                     paredit.open(this.readline, "{}");
                     this.readline.repaint();
                 })
+                this.readline.clearCompletion();
                 e.preventDefault();
             } else if(this.input.value == ")") {
                 this.readline.withUndo(() => {
                     paredit.close(this.readline, ")");
                     this.readline.repaint();
                 })
+                this.readline.clearCompletion();
                 e.preventDefault();
             } else if(this.input.value == "]") {
                 this.readline.withUndo(() => {
                     paredit.close(this.readline, "]");
                     this.readline.repaint();
                 })
+                this.readline.clearCompletion();
                 e.preventDefault();
             } else if(this.input.value == "}") {
                 this.readline.withUndo(() => {
                     paredit.close(this.readline, "}");
                     this.readline.repaint();
                 })
+                this.readline.clearCompletion();
                 e.preventDefault();
             } else if(this.input.value == "\n") {
                 if(this.readline.canReturn()) {
@@ -192,9 +217,11 @@ export class ReplConsole {
                     for(let i=0; i<indent; i++)
                         istr += " "
                     this.readline.insertString("\n"+istr);
+                    this.readline.clearCompletion();
                 }
             } else {
                 this.readline.insertString(this.input.value)
+                this.readline.maybeShowCompletion();
             }
             this.input.value = ""
             e.preventDefault();
@@ -238,7 +265,7 @@ export class ReplConsole {
         if(this.readline && !this.input.disabled)
             return;
         this.readline = new ReplReadline(this.elem, prompt, this.input);
-        this.readline.addOnRepaintListener(this.onRepaint);
+        this.readline.addCompletionListener(e => this._completionListeners.forEach(listener => listener(e)));
         this.elem.appendChild(this.input);
         this.input.disabled = false;
         this.input.focus();
