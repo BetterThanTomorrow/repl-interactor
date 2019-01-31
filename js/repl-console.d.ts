@@ -8,6 +8,10 @@ export declare class ReplConsole {
     hotkeys: HotKeyTable<ReplConsole>;
     historyIndex: number;
     history: string[];
+    /** Event listeners for history */
+    private _historyListeners;
+    addHistoryListener(c: (line: string) => void): void;
+    removeHistoryListener(c: (line: string) => void): void;
     /** Event listeners for completion */
     private _completionListeners;
     addCompletionListener(c: CompletionListener): void;
@@ -16,6 +20,7 @@ export declare class ReplConsole {
     printElement(element: HTMLElement): void;
     print(text: string): void;
     setText(text: string): void;
+    setHistory(history: string[]): void;
     submitLine(trigger?: boolean): void;
     requestPrompt(prompt: string): void;
     onRepaint: () => void;

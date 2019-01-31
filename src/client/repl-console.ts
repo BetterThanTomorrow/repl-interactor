@@ -61,6 +61,20 @@ export class ReplConsole {
     historyIndex = -1;
     history: string[] = [];
 
+    /** Event listeners for history */
+    private _historyListeners: ((line: string) => void)[] = [];
+
+    addHistoryListener(c: (line: string) => void) {
+        if(this._historyListeners.indexOf(c) == -1)
+            this._historyListeners.push(c);
+    }
+
+    removeHistoryListener(c: (line: string) => void) {
+        let idx = this._historyListeners.indexOf(c);
+        if(idx != -1)
+            this._historyListeners.splice(idx, 1);
+    }
+
     /** Event listeners for completion */
     private _completionListeners: CompletionListener[] = [];
 
@@ -250,11 +264,17 @@ export class ReplConsole {
         this.readline.repaint();
     }
 
+    setHistory(history: string[]) {
+        this.history = history;
+        this.historyIndex = -1;
+    }
+
     submitLine(trigger = true) {
         let line = this.readline.model.getText(0, this.readline.model.maxOffset);
         if(line.trim() == "")
             return;
         this.history.push(line);
+        this._historyListeners.forEach(x => x(line));
         this.historyIndex = -1;
         this.readline.freeze();
         if(trigger)

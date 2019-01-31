@@ -56,6 +56,8 @@ export class ReplConsole {
         this.onReadLine = onReadLine;
         this.historyIndex = -1;
         this.history = [];
+        /** Event listeners for history */
+        this._historyListeners = [];
         /** Event listeners for completion */
         this._completionListeners = [];
         this.onRepaint = () => { };
@@ -474,6 +476,15 @@ export class ReplConsole {
             this.readline.mainElem.scrollIntoView({ block: "end" });
         });
     }
+    addHistoryListener(c) {
+        if (this._historyListeners.indexOf(c) == -1)
+            this._historyListeners.push(c);
+    }
+    removeHistoryListener(c) {
+        let idx = this._historyListeners.indexOf(c);
+        if (idx != -1)
+            this._historyListeners.splice(idx, 1);
+    }
     addCompletionListener(c) {
         if (this._completionListeners.indexOf(c) == -1)
             this._completionListeners.push(c);
@@ -502,11 +513,16 @@ export class ReplConsole {
         this.readline.model.changeRange(0, this.readline.model.maxOffset, text);
         this.readline.repaint();
     }
+    setHistory(history) {
+        this.history = history;
+        this.historyIndex = -1;
+    }
     submitLine(trigger = true) {
         let line = this.readline.model.getText(0, this.readline.model.maxOffset);
         if (line.trim() == "")
             return;
         this.history.push(line);
+        this._historyListeners.forEach(x => x(line));
         this.historyIndex = -1;
         this.readline.freeze();
         if (trigger)
