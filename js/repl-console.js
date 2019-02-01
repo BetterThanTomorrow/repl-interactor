@@ -519,8 +519,11 @@ export class ReplConsole {
     }
     submitLine(trigger = true) {
         let line = this.readline.model.getText(0, this.readline.model.maxOffset);
-        if (line.trim() == "")
+        if (line.trim() == "") {
+            this.readline.freeze();
+            this.requestPrompt(this.readline.promptElem.textContent);
             return;
+        }
         this.history.push(line);
         this._historyListeners.forEach(x => x(line));
         this.historyIndex = -1;
