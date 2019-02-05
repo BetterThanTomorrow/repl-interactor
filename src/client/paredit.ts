@@ -21,7 +21,7 @@ export function wrapSexpr(doc: ReplReadline, open: string, close: string, start:
 export function splitSexp(doc: ReplReadline, start: number = doc.selectionEnd) {
     let cursor = doc.getTokenCursor(start);
     if(cursor.withinString()) {
-        if(doc.model.getText(start-1, start+1) == '\\"') {
+        if(doc.model.getText(start-1, start+1, true) == '\\"') {
             doc.model.changeRange(start+1, start+1, "\" \"")
             doc.selectionStart = doc.selectionEnd = start+2;
         } else {
@@ -212,17 +212,17 @@ export function backspace(doc: ReplReadline, start: number = doc.selectionStart,
     if(start != end) {
         doc.backspace();
     } else {
-        if(doc.model.getText(start-3, start) == '\\""') {
+        if(doc.model.getText(start-3, start, true) == '\\""') {
             doc.selectionStart = doc.selectionEnd = start-1;
-        } else if(doc.model.getText(start-2, start-1) == '\\') {
+        } else if(doc.model.getText(start-2, start-1, true) == '\\') {
             doc.model.deleteRange(start-2, 2);
             doc.selectionStart = doc.selectionEnd = start-2;
-        } else if(parenPair.has(doc.model.getText(start-1, start+1))) {
+        } else if(parenPair.has(doc.model.getText(start-1, start+1, true))) {
             doc.model.deleteRange(start-1, 2);
             doc.selectionStart = doc.selectionEnd = start-1;
-        } else if(closeParen.has(doc.model.getText(start-1, start)) || openParen.has(doc.model.getText(start-1, start))) {
+        } else if(closeParen.has(doc.model.getText(start-1, start, true)) || openParen.has(doc.model.getText(start-1, start, true))) {
             doc.selectionStart = doc.selectionEnd = start-1;
-        } else if(openParen.has(doc.model.getText(start-1, start+1)) || closeParen.has(doc.model.getText(start-1, start))) {
+        } else if(openParen.has(doc.model.getText(start-1, start+1, true)) || closeParen.has(doc.model.getText(start-1, start, true))) {
             doc.model.deleteRange(start-1, 2);
             doc.selectionStart = doc.selectionEnd = start-1;
         } else
@@ -234,12 +234,12 @@ export function deleteForward(doc: ReplReadline, start: number = doc.selectionSt
     if(start != end) {
         doc.delete();
     } else {
-        if(parenPair.has(doc.model.getText(start, start+2))) {
+        if(parenPair.has(doc.model.getText(start, start+2, true))) {
             doc.model.deleteRange(start, 2);
-        } else if(parenPair.has(doc.model.getText(start-1, start+1))) {
+        } else if(parenPair.has(doc.model.getText(start-1, start+1, true))) {
             doc.model.deleteRange(start-1, 2);
             doc.selectionStart = doc.selectionEnd = start-1;
-        } else if(openParen.has(doc.model.getText(start, start+1)) || closeParen.has(doc.model.getText(start, start+1))) {
+        } else if(openParen.has(doc.model.getText(start, start+1, true)) || closeParen.has(doc.model.getText(start, start+1, true))) {
             doc.selectionStart = doc.selectionEnd = start+1;
         } else
             doc.delete();

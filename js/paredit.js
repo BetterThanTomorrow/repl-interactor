@@ -18,7 +18,7 @@ export function wrapSexpr(doc, open, close, start = doc.selectionStart, end = do
 export function splitSexp(doc, start = doc.selectionEnd) {
     let cursor = doc.getTokenCursor(start);
     if (cursor.withinString()) {
-        if (doc.model.getText(start - 1, start + 1) == '\\"') {
+        if (doc.model.getText(start - 1, start + 1, true) == '\\"') {
             doc.model.changeRange(start + 1, start + 1, "\" \"");
             doc.selectionStart = doc.selectionEnd = start + 2;
         }
@@ -197,21 +197,21 @@ export function backspace(doc, start = doc.selectionStart, end = doc.selectionEn
         doc.backspace();
     }
     else {
-        if (doc.model.getText(start - 3, start) == '\\""') {
+        if (doc.model.getText(start - 3, start, true) == '\\""') {
             doc.selectionStart = doc.selectionEnd = start - 1;
         }
-        else if (doc.model.getText(start - 2, start - 1) == '\\') {
+        else if (doc.model.getText(start - 2, start - 1, true) == '\\') {
             doc.model.deleteRange(start - 2, 2);
             doc.selectionStart = doc.selectionEnd = start - 2;
         }
-        else if (parenPair.has(doc.model.getText(start - 1, start + 1))) {
+        else if (parenPair.has(doc.model.getText(start - 1, start + 1, true))) {
             doc.model.deleteRange(start - 1, 2);
             doc.selectionStart = doc.selectionEnd = start - 1;
         }
-        else if (closeParen.has(doc.model.getText(start - 1, start)) || openParen.has(doc.model.getText(start - 1, start))) {
+        else if (closeParen.has(doc.model.getText(start - 1, start, true)) || openParen.has(doc.model.getText(start - 1, start, true))) {
             doc.selectionStart = doc.selectionEnd = start - 1;
         }
-        else if (openParen.has(doc.model.getText(start - 1, start + 1)) || closeParen.has(doc.model.getText(start - 1, start))) {
+        else if (openParen.has(doc.model.getText(start - 1, start + 1, true)) || closeParen.has(doc.model.getText(start - 1, start, true))) {
             doc.model.deleteRange(start - 1, 2);
             doc.selectionStart = doc.selectionEnd = start - 1;
         }
@@ -224,14 +224,14 @@ export function deleteForward(doc, start = doc.selectionStart, end = doc.selecti
         doc.delete();
     }
     else {
-        if (parenPair.has(doc.model.getText(start, start + 2))) {
+        if (parenPair.has(doc.model.getText(start, start + 2, true))) {
             doc.model.deleteRange(start, 2);
         }
-        else if (parenPair.has(doc.model.getText(start - 1, start + 1))) {
+        else if (parenPair.has(doc.model.getText(start - 1, start + 1, true))) {
             doc.model.deleteRange(start - 1, 2);
             doc.selectionStart = doc.selectionEnd = start - 1;
         }
-        else if (openParen.has(doc.model.getText(start, start + 1)) || closeParen.has(doc.model.getText(start, start + 1))) {
+        else if (openParen.has(doc.model.getText(start, start + 1, true)) || closeParen.has(doc.model.getText(start, start + 1, true))) {
             doc.selectionStart = doc.selectionEnd = start + 1;
         }
         else

@@ -50,8 +50,9 @@ export declare class LineInputModel {
      *
      * @param start the start offset in the text range
      * @param end the end offset in the text range
+     * @param mustBeWithin if the start or end are outside the document, returns ""
      */
-    getText(start: number, end: number): string;
+    getText(start: number, end: number, mustBeWithin?: boolean): string;
     /**
      * Returns the row and column for a given text offset in this model.
      */

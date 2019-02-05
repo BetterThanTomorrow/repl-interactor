@@ -164,9 +164,12 @@ export class LineInputModel {
      * 
      * @param start the start offset in the text range
      * @param end the end offset in the text range
+     * @param mustBeWithin if the start or end are outside the document, returns ""
      */
-    getText(start: number, end: number): string {
+    getText(start: number, end: number, mustBeWithin = false): string {
         if(start == end)
+            return "";
+        if(mustBeWithin && (Math.min(start, end) < 0 || Math.max(start, end) > this.maxOffset))
             return "";
         let st = this.getRowCol(Math.min(start, end));
         let en = this.getRowCol(Math.max(start, end));
