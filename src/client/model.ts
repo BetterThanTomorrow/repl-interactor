@@ -1,6 +1,7 @@
 import { Scanner, Token, ScannerState } from "./clojure-lexer";
 import { UndoManager, UndoStep } from "./undo";
 import { ReplReadline } from "./readline";
+import { LispTokenCursor } from "./token-cursor";
 
 const scanner = new Scanner();
 
@@ -301,6 +302,21 @@ export class LineInputModel {
         for(let i=0; i<this.lines.length; i++)
             max += this.lines[i].text.length + 1;
         return max-1;
+    }
+
+    public getTokenCursor(offset: number, previous: boolean = false) {
+        let [row, col] = this.getRowCol(offset);
+        let line = this.lines[row]
+        let lastIndex = 0;
+        if(line) {
+            for(let i=0; i<line.tokens.length; i++) {
+                let tk = line.tokens[i];
+                if(previous ? tk.offset > col : tk.offset > col)
+                    return new LispTokenCursor(this, row, previous ? Math.max(0, lastIndex-1) : lastIndex);
+                lastIndex = i;
+            }
+            return new LispTokenCursor(this, row, line.tokens.length-1);
+        }
     }
 }
 

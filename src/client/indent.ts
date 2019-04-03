@@ -1,4 +1,4 @@
-import { ReplReadline } from "./readline";
+import { LineInputModel } from "./model";
 
 const whitespace = new Set(["ws", "comment", "eol"])
 
@@ -114,7 +114,7 @@ const OPEN_LIST = new Set(["#(", "#?(", "(", "#?@("])
  * @param maxDepth The maximum depth upwards from the expression to search.
  * @param maxLines The maximum number of lines above the position to search until we bail with an imprecise answer.
  */
-export function collectIndents(document: ReplReadline, offset: number, maxDepth: number = 3, maxLines: number = 20): IndentInformation[] {
+export function collectIndents(document: LineInputModel, offset: number, maxDepth: number = 3, maxLines: number = 20): IndentInformation[] {
     let cursor = document.getTokenCursor(offset);
     cursor.backwardWhitespace();
     let argPos = 0;
@@ -171,7 +171,7 @@ export function collectIndents(document: ReplReadline, offset: number, maxDepth:
 }
 
 /** Returns the expected newline indent for the given position, in characters. */
-export function getIndent(document: ReplReadline, offset: number): number {
+export function getIndent(document: LineInputModel, offset: number): number {
     let state = collectIndents(document, offset);
     // now find applicable indent rules
     let indent = -1;

@@ -150,7 +150,7 @@ export class ReplConsole {
                             this.readline.clearCompletion();
                         } else {
                             this.readline.model.undoManager.insertUndoStop();
-                            let indent = getIndent(this.readline, this.readline.selectionEnd);
+                            let indent = getIndent(this.readline.model, this.readline.selectionEnd);
                             let istr = ""
                             for(let i=0; i<indent; i++)
                                 istr += " "
@@ -226,7 +226,7 @@ export class ReplConsole {
                     this.submitLine();
                 } else {
                     this.readline.model.undoManager.insertUndoStop();
-                    let indent = getIndent(this.readline, this.readline.selectionEnd);
+                    let indent = getIndent(this.readline.model, this.readline.selectionEnd);
                     let istr = ""
                     for(let i=0; i<indent; i++)
                         istr += " "
