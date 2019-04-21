@@ -1,6 +1,7 @@
 import { Token, ScannerState } from "./clojure-lexer";
 import { UndoManager } from "./undo";
 import { ReplReadline } from "./readline";
+import { LispTokenCursor } from "./token-cursor";
 export declare class TextLine {
     startState: ScannerState;
     tokens: Token[];
@@ -99,4 +100,5 @@ export declare class LineInputModel {
     deleteRange(offset: number, count: number, oldSelection?: [number, number], newSelection?: [number, number]): void;
     /** Return the offset of the last character in this model. */
     readonly maxOffset: number;
+    getTokenCursor(offset: number, previous?: boolean): LispTokenCursor;
 }

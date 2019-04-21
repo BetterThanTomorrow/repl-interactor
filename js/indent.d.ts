@@ -1,4 +1,4 @@
-import { ReplReadline } from "./readline";
+import { LineInputModel } from "./model";
 declare type IndentRule = ["block", number] | ["inner", number] | ["inner", number, number];
 /**
  * The information about an enclosing s-expr, returned by collectIndents
@@ -26,7 +26,7 @@ interface IndentInformation {
  * @param maxDepth The maximum depth upwards from the expression to search.
  * @param maxLines The maximum number of lines above the position to search until we bail with an imprecise answer.
  */
-export declare function collectIndents(document: ReplReadline, offset: number, maxDepth?: number, maxLines?: number): IndentInformation[];
+export declare function collectIndents(document: LineInputModel, offset: number, maxDepth?: number, maxLines?: number): IndentInformation[];
 /** Returns the expected newline indent for the given position, in characters. */
-export declare function getIndent(document: ReplReadline, offset: number): number;
+export declare function getIndent(document: LineInputModel, offset: number): number;
 export {};

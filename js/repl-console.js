@@ -1,8 +1,10 @@
-import { ReplReadline } from "./readline";
-import * as paredit from "./paredit";
-import { getIndent } from "./indent";
-import { HotKeyTable } from "./hotkeys";
-const defaultHotkeys = new HotKeyTable({
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var readline_1 = require("./readline");
+var paredit = require("./paredit");
+var indent_1 = require("./indent");
+var hotkeys_1 = require("./hotkeys");
+var defaultHotkeys = new hotkeys_1.HotKeyTable({
     "Alt+R": "raise-sexp",
     "Alt+Shift+/": "convolute-sexp",
     "Alt+Backspace": "force-backspace",
@@ -50,8 +52,10 @@ const defaultHotkeys = new HotKeyTable({
     "Alt+UpArrow": "history-up",
     "Alt+DownArrow": "history-down",
 });
-export class ReplConsole {
-    constructor(elem, onReadLine = () => { }) {
+var ReplConsole = /** @class */ (function () {
+    function ReplConsole(elem, onReadLine) {
+        if (onReadLine === void 0) { onReadLine = function () { }; }
+        var _this = this;
         this.elem = elem;
         this.onReadLine = onReadLine;
         this.historyIndex = -1;
@@ -60,264 +64,264 @@ export class ReplConsole {
         this._historyListeners = [];
         /** Event listeners for completion */
         this._completionListeners = [];
-        this.onRepaint = () => { };
+        this.onRepaint = function () { };
         this.commands = {
-            "raise-sexp": () => {
-                this.readline.withUndo(() => {
-                    paredit.raiseSexp(this.readline);
-                    this.readline.repaint();
+            "raise-sexp": function () {
+                _this.readline.withUndo(function () {
+                    paredit.raiseSexp(_this.readline);
+                    _this.readline.repaint();
                 });
             },
-            "convolute-sexp": () => {
-                this.readline.withUndo(() => {
-                    paredit.convolute(this.readline);
-                    this.readline.repaint();
+            "convolute-sexp": function () {
+                _this.readline.withUndo(function () {
+                    paredit.convolute(_this.readline);
+                    _this.readline.repaint();
                 });
             },
-            "force-backspace": () => {
-                this.readline.withUndo(() => {
-                    this.readline.backspace();
-                    this.readline.repaint();
+            "force-backspace": function () {
+                _this.readline.withUndo(function () {
+                    _this.readline.backspace();
+                    _this.readline.repaint();
                 });
             },
-            "force-delete": () => {
-                this.readline.withUndo(() => {
-                    this.readline.delete();
-                    this.readline.repaint();
+            "force-delete": function () {
+                _this.readline.withUndo(function () {
+                    _this.readline.delete();
+                    _this.readline.repaint();
                 });
             },
-            "grow-selection": () => {
-                this.readline.withUndo(() => {
-                    paredit.growSelection(this.readline);
-                    this.readline.repaint();
+            "grow-selection": function () {
+                _this.readline.withUndo(function () {
+                    paredit.growSelection(_this.readline);
+                    _this.readline.repaint();
                 });
             },
-            "shrink-selection": () => {
-                this.readline.withUndo(() => {
-                    paredit.shrinkSelection(this.readline);
-                    this.readline.repaint();
+            "shrink-selection": function () {
+                _this.readline.withUndo(function () {
+                    paredit.shrinkSelection(_this.readline);
+                    _this.readline.repaint();
                 });
             },
-            "backward-sexp": () => {
-                let cursor = this.readline.getTokenCursor();
+            "backward-sexp": function () {
+                var cursor = _this.readline.getTokenCursor();
                 cursor.backwardSexp(true);
-                this.readline.selectionStart = this.readline.selectionEnd = cursor.offsetStart;
-                this.readline.repaint();
+                _this.readline.selectionStart = _this.readline.selectionEnd = cursor.offsetStart;
+                _this.readline.repaint();
             },
-            "forward-sexp": () => {
-                let cursor = this.readline.getTokenCursor();
+            "forward-sexp": function () {
+                var cursor = _this.readline.getTokenCursor();
                 cursor.forwardSexp(true);
-                this.readline.selectionStart = this.readline.selectionEnd = cursor.offsetStart;
-                this.readline.repaint();
+                _this.readline.selectionStart = _this.readline.selectionEnd = cursor.offsetStart;
+                _this.readline.repaint();
             },
-            "down-list": () => {
-                let cursor = this.readline.getTokenCursor();
+            "down-list": function () {
+                var cursor = _this.readline.getTokenCursor();
                 do {
                     cursor.forwardWhitespace();
                 } while (cursor.getToken().type != "open" && cursor.forwardSexp());
                 { }
                 cursor.downList();
-                this.readline.selectionStart = this.readline.selectionEnd = cursor.offsetStart;
-                this.readline.repaint();
+                _this.readline.selectionStart = _this.readline.selectionEnd = cursor.offsetStart;
+                _this.readline.repaint();
             },
-            "up-list": () => {
-                let cursor = this.readline.getTokenCursor();
+            "up-list": function () {
+                var cursor = _this.readline.getTokenCursor();
                 cursor.forwardList();
                 cursor.upList();
-                this.readline.selectionStart = this.readline.selectionEnd = cursor.offsetStart;
-                this.readline.repaint();
+                _this.readline.selectionStart = _this.readline.selectionEnd = cursor.offsetStart;
+                _this.readline.repaint();
             },
-            "backward-up-list": () => {
-                let cursor = this.readline.getTokenCursor();
+            "backward-up-list": function () {
+                var cursor = _this.readline.getTokenCursor();
                 cursor.backwardList();
                 cursor.backwardUpList();
-                this.readline.selectionStart = this.readline.selectionEnd = cursor.offsetStart;
-                this.readline.repaint();
+                _this.readline.selectionStart = _this.readline.selectionEnd = cursor.offsetStart;
+                _this.readline.repaint();
             },
-            "select-all": () => {
-                this.readline.selectionStart = 0;
-                this.readline.selectionEnd = this.readline.model.maxOffset;
-                this.readline.repaint();
+            "select-all": function () {
+                _this.readline.selectionStart = 0;
+                _this.readline.selectionEnd = _this.readline.model.maxOffset;
+                _this.readline.repaint();
             },
-            "undo": () => {
-                this.readline.model.undoManager.undo(this.readline);
-                this.readline.repaint();
+            "undo": function () {
+                _this.readline.model.undoManager.undo(_this.readline);
+                _this.readline.repaint();
             },
-            "redo": () => {
-                this.readline.model.undoManager.redo(this.readline);
-                this.readline.repaint();
+            "redo": function () {
+                _this.readline.model.undoManager.redo(_this.readline);
+                _this.readline.repaint();
             },
-            "join-sexp": () => {
-                this.readline.withUndo(() => {
-                    paredit.joinSexp(this.readline);
-                    this.readline.repaint();
+            "join-sexp": function () {
+                _this.readline.withUndo(function () {
+                    paredit.joinSexp(_this.readline);
+                    _this.readline.repaint();
                 });
             },
-            "backward-slurp-sexp": () => {
-                this.readline.withUndo(() => {
-                    paredit.backwardSlurpSexp(this.readline);
-                    this.readline.repaint();
+            "backward-slurp-sexp": function () {
+                _this.readline.withUndo(function () {
+                    paredit.backwardSlurpSexp(_this.readline);
+                    _this.readline.repaint();
                 });
             },
-            "forward-barf-sexp": () => {
-                this.readline.withUndo(() => {
-                    paredit.forwardBarfSexp(this.readline);
-                    this.readline.repaint();
+            "forward-barf-sexp": function () {
+                _this.readline.withUndo(function () {
+                    paredit.forwardBarfSexp(_this.readline);
+                    _this.readline.repaint();
                 });
             },
-            "cursor-left": () => {
-                this.readline.caretLeft(true);
-                this.readline.repaint();
+            "cursor-left": function () {
+                _this.readline.caretLeft(true);
+                _this.readline.repaint();
             },
-            "cursor-select-left": () => {
-                this.readline.caretLeft(false);
-                this.readline.repaint();
+            "cursor-select-left": function () {
+                _this.readline.caretLeft(false);
+                _this.readline.repaint();
             },
-            "forward-slurp-sexp": () => {
-                this.readline.withUndo(() => {
-                    paredit.forwardSlurpSexp(this.readline);
-                    this.readline.repaint();
+            "forward-slurp-sexp": function () {
+                _this.readline.withUndo(function () {
+                    paredit.forwardSlurpSexp(_this.readline);
+                    _this.readline.repaint();
                 });
             },
-            "backward-barf-sexp": () => {
-                this.readline.withUndo(() => {
-                    paredit.backwardBarfSexp(this.readline);
-                    this.readline.repaint();
+            "backward-barf-sexp": function () {
+                _this.readline.withUndo(function () {
+                    paredit.backwardBarfSexp(_this.readline);
+                    _this.readline.repaint();
                 });
             },
-            "cursor-right": () => {
-                this.readline.caretRight(true);
-                this.readline.repaint();
+            "cursor-right": function () {
+                _this.readline.caretRight(true);
+                _this.readline.repaint();
             },
-            "cursor-select-right": () => {
-                this.readline.caretRight(false);
-                this.readline.repaint();
+            "cursor-select-right": function () {
+                _this.readline.caretRight(false);
+                _this.readline.repaint();
             },
-            "splice-sexp-killing-backwards": () => {
-                this.readline.withUndo(() => {
-                    paredit.spliceSexpKillingBackward(this.readline);
-                    this.readline.repaint();
+            "splice-sexp-killing-backwards": function () {
+                _this.readline.withUndo(function () {
+                    paredit.spliceSexpKillingBackward(_this.readline);
+                    _this.readline.repaint();
                 });
             },
-            "cursor-up": () => {
-                this.readline.caretUp(true);
-                this.readline.repaint();
+            "cursor-up": function () {
+                _this.readline.caretUp(true);
+                _this.readline.repaint();
             },
-            "cursor-select-up": () => {
-                this.readline.caretUp(false);
-                this.readline.repaint();
+            "cursor-select-up": function () {
+                _this.readline.caretUp(false);
+                _this.readline.repaint();
             },
-            "splice-sexp-killing-forwards": () => {
-                this.readline.withUndo(() => {
-                    paredit.spliceSexpKillingForward(this.readline);
-                    this.readline.repaint();
+            "splice-sexp-killing-forwards": function () {
+                _this.readline.withUndo(function () {
+                    paredit.spliceSexpKillingForward(_this.readline);
+                    _this.readline.repaint();
                 });
             },
-            "cursor-down": () => {
-                this.readline.caretDown(true);
-                this.readline.repaint();
+            "cursor-down": function () {
+                _this.readline.caretDown(true);
+                _this.readline.repaint();
             },
-            "cursor-select-down": () => {
-                this.readline.caretDown(false);
-                this.readline.repaint();
+            "cursor-select-down": function () {
+                _this.readline.caretDown(false);
+                _this.readline.repaint();
             },
-            "backspace": () => {
-                this.readline.withUndo(() => {
-                    paredit.backspace(this.readline);
-                    this.readline.repaint();
+            "backspace": function () {
+                _this.readline.withUndo(function () {
+                    paredit.backspace(_this.readline);
+                    _this.readline.repaint();
                 });
             },
-            "cursor-home": () => {
-                this.readline.caretHome(true);
-                this.readline.repaint();
+            "cursor-home": function () {
+                _this.readline.caretHome(true);
+                _this.readline.repaint();
             },
-            "cursor-select-home": () => {
-                this.readline.caretHome(false);
-                this.readline.repaint();
+            "cursor-select-home": function () {
+                _this.readline.caretHome(false);
+                _this.readline.repaint();
             },
-            "cursor-home-all": () => {
-                this.readline.caretHomeAll(true);
-                this.readline.repaint();
+            "cursor-home-all": function () {
+                _this.readline.caretHomeAll(true);
+                _this.readline.repaint();
             },
-            "cursor-select-home-all": () => {
-                this.readline.caretHomeAll(false);
-                this.readline.repaint();
+            "cursor-select-home-all": function () {
+                _this.readline.caretHomeAll(false);
+                _this.readline.repaint();
             },
-            "cursor-end": () => {
-                this.readline.caretEnd(true);
-                this.readline.repaint();
+            "cursor-end": function () {
+                _this.readline.caretEnd(true);
+                _this.readline.repaint();
             },
-            "cursor-select-end": () => {
-                this.readline.caretEnd(false);
-                this.readline.repaint();
+            "cursor-select-end": function () {
+                _this.readline.caretEnd(false);
+                _this.readline.repaint();
             },
-            "cursor-end-all": () => {
-                this.readline.caretEndAll(true);
-                this.readline.repaint();
+            "cursor-end-all": function () {
+                _this.readline.caretEndAll(true);
+                _this.readline.repaint();
             },
-            "cursor-select-end-all": () => {
-                this.readline.caretEndAll(false);
-                this.readline.repaint();
+            "cursor-select-end-all": function () {
+                _this.readline.caretEndAll(false);
+                _this.readline.repaint();
             },
-            "delete": () => {
-                this.readline.withUndo(() => {
-                    paredit.deleteForward(this.readline);
-                    this.readline.repaint();
+            "delete": function () {
+                _this.readline.withUndo(function () {
+                    paredit.deleteForward(_this.readline);
+                    _this.readline.repaint();
                 });
             },
-            "wrap-round": () => {
-                this.readline.withUndo(() => {
-                    paredit.wrapSexpr(this.readline, "(", ")");
-                    this.readline.repaint();
+            "wrap-round": function () {
+                _this.readline.withUndo(function () {
+                    paredit.wrapSexpr(_this.readline, "(", ")");
+                    _this.readline.repaint();
                 });
             },
-            "wrap-square": () => {
-                this.readline.withUndo(() => {
-                    paredit.wrapSexpr(this.readline, "[", "]");
-                    this.readline.repaint();
+            "wrap-square": function () {
+                _this.readline.withUndo(function () {
+                    paredit.wrapSexpr(_this.readline, "[", "]");
+                    _this.readline.repaint();
                 });
             },
-            "wrap-curly": () => {
-                this.readline.withUndo(() => {
-                    paredit.wrapSexpr(this.readline, "{", "}");
-                    this.readline.repaint();
+            "wrap-curly": function () {
+                _this.readline.withUndo(function () {
+                    paredit.wrapSexpr(_this.readline, "{", "}");
+                    _this.readline.repaint();
                 });
             },
-            "split-sexp": () => {
-                this.readline.withUndo(() => {
-                    paredit.splitSexp(this.readline);
-                    this.readline.repaint();
+            "split-sexp": function () {
+                _this.readline.withUndo(function () {
+                    paredit.splitSexp(_this.readline);
+                    _this.readline.repaint();
                 });
             },
-            "splice-sexp": () => {
-                this.readline.withUndo(() => {
-                    paredit.spliceSexp(this.readline);
-                    this.readline.repaint();
+            "splice-sexp": function () {
+                _this.readline.withUndo(function () {
+                    paredit.spliceSexp(_this.readline);
+                    _this.readline.repaint();
                 });
             },
-            "history-up": () => {
-                if (this.historyIndex == 0)
+            "history-up": function () {
+                if (_this.historyIndex == 0)
                     return;
-                if (this.historyIndex == -1)
-                    this.historyIndex = this.history.length;
-                this.historyIndex--;
-                let line = this.history[this.historyIndex] || "";
-                this.readline.withUndo(() => {
-                    this.readline.model.changeRange(0, this.readline.model.maxOffset, line);
-                    this.readline.selectionStart = this.readline.selectionEnd = line.length;
+                if (_this.historyIndex == -1)
+                    _this.historyIndex = _this.history.length;
+                _this.historyIndex--;
+                var line = _this.history[_this.historyIndex] || "";
+                _this.readline.withUndo(function () {
+                    _this.readline.model.changeRange(0, _this.readline.model.maxOffset, line);
+                    _this.readline.selectionStart = _this.readline.selectionEnd = line.length;
                 });
-                this.readline.repaint();
+                _this.readline.repaint();
             },
-            "history-down": () => {
-                if (this.historyIndex == this.history.length || this.historyIndex == -1)
+            "history-down": function () {
+                if (_this.historyIndex == _this.history.length || _this.historyIndex == -1)
                     return;
-                this.historyIndex++;
-                let line = this.history[this.historyIndex] || "";
-                this.readline.withUndo(() => {
-                    this.readline.model.changeRange(0, this.readline.model.maxOffset, line);
-                    this.readline.selectionStart = this.readline.selectionEnd = line.length;
+                _this.historyIndex++;
+                var line = _this.history[_this.historyIndex] || "";
+                _this.readline.withUndo(function () {
+                    _this.readline.model.changeRange(0, _this.readline.model.maxOffset, line);
+                    _this.readline.selectionStart = _this.readline.selectionEnd = line.length;
                 });
-                this.readline.repaint();
+                _this.readline.repaint();
             }
         };
         this.hotkeys = defaultHotkeys;
@@ -326,43 +330,43 @@ export class ReplConsole {
         this.input.style.height = "0px";
         this.input.style.position = "fixed";
         this.input.style.opacity = "0";
-        this.input.addEventListener("focus", () => {
-            this.readline.mainElem.classList.add("is-focused");
+        this.input.addEventListener("focus", function () {
+            _this.readline.mainElem.classList.add("is-focused");
         });
-        this.input.addEventListener("blur", () => {
-            this.readline.clearCompletion();
-            this.readline.mainElem.classList.remove("is-focused");
+        this.input.addEventListener("blur", function () {
+            _this.readline.clearCompletion();
+            _this.readline.mainElem.classList.remove("is-focused");
         });
-        document.addEventListener("cut", e => {
-            if (document.activeElement == this.input) {
-                e.clipboardData.setData("text/plain", this.readline.model.getText(this.readline.selectionStart, this.readline.selectionEnd));
-                this.readline.delete();
+        document.addEventListener("cut", function (e) {
+            if (document.activeElement == _this.input) {
+                e.clipboardData.setData("text/plain", _this.readline.model.getText(_this.readline.selectionStart, _this.readline.selectionEnd));
+                _this.readline.delete();
                 e.preventDefault();
             }
         });
-        document.addEventListener("copy", e => {
-            if (document.activeElement == this.input) {
-                e.clipboardData.setData("text/plain", this.readline.model.getText(this.readline.selectionStart, this.readline.selectionEnd));
+        document.addEventListener("copy", function (e) {
+            if (document.activeElement == _this.input) {
+                e.clipboardData.setData("text/plain", _this.readline.model.getText(_this.readline.selectionStart, _this.readline.selectionEnd));
                 e.preventDefault();
             }
         });
-        document.addEventListener("paste", e => {
-            if (document.activeElement == this.input) {
-                this.readline.clearCompletion();
-                this.readline.model.undoManager.insertUndoStop();
-                this.readline.insertString(e.clipboardData.getData("text/plain"));
+        document.addEventListener("paste", function (e) {
+            if (document.activeElement == _this.input) {
+                _this.readline.clearCompletion();
+                _this.readline.model.undoManager.insertUndoStop();
+                _this.readline.insertString(e.clipboardData.getData("text/plain"));
                 e.preventDefault();
             }
         });
-        this.input.addEventListener("keydown", e => {
-            if (this.hotkeys.execute(this, e)) {
+        this.input.addEventListener("keydown", function (e) {
+            if (_this.hotkeys.execute(_this, e)) {
                 e.preventDefault();
-                this.readline.mainElem.scrollIntoView({ block: "end" });
+                _this.readline.mainElem.scrollIntoView({ block: "end" });
                 return;
             }
             if (e.key.length == 1 && !e.metaKey && !e.ctrlKey) {
                 if (e.key == " ")
-                    this.readline.model.undoManager.insertUndoStop();
+                    _this.readline.model.undoManager.insertUndoStop();
             }
             else {
                 switch (e.keyCode) {
@@ -370,131 +374,131 @@ export class ReplConsole {
                         e.preventDefault();
                         break;
                     case 13:
-                        if (this.readline.canReturn()) {
-                            this.submitLine();
-                            this.readline.clearCompletion();
+                        if (_this.readline.canReturn()) {
+                            _this.submitLine();
+                            _this.readline.clearCompletion();
                         }
                         else {
-                            this.readline.model.undoManager.insertUndoStop();
-                            let indent = getIndent(this.readline, this.readline.selectionEnd);
-                            let istr = "";
-                            for (let i = 0; i < indent; i++)
+                            _this.readline.model.undoManager.insertUndoStop();
+                            var indent = indent_1.getIndent(_this.readline.model, _this.readline.selectionEnd);
+                            var istr = "";
+                            for (var i = 0; i < indent; i++)
                                 istr += " ";
-                            this.readline.insertString("\n" + istr);
+                            _this.readline.insertString("\n" + istr);
                         }
                         break;
                 }
             }
-            this.readline.mainElem.scrollIntoView({ block: "end" });
+            _this.readline.mainElem.scrollIntoView({ block: "end" });
         }, { capture: true });
-        this.input.addEventListener("input", e => {
-            this.readline.mainElem.scrollIntoView({ block: "end" });
-            if (this.input.value == '"') {
-                this.readline.withUndo(() => {
-                    paredit.stringQuote(this.readline);
-                    this.readline.repaint();
+        this.input.addEventListener("input", function (e) {
+            _this.readline.mainElem.scrollIntoView({ block: "end" });
+            if (_this.input.value == '"') {
+                _this.readline.withUndo(function () {
+                    paredit.stringQuote(_this.readline);
+                    _this.readline.repaint();
                 });
-                this.readline.clearCompletion();
+                _this.readline.clearCompletion();
                 e.preventDefault();
             }
-            else if (this.input.value == "(") {
-                this.readline.withUndo(() => {
-                    paredit.open(this.readline, "()");
-                    this.readline.repaint();
+            else if (_this.input.value == "(") {
+                _this.readline.withUndo(function () {
+                    paredit.open(_this.readline, "()");
+                    _this.readline.repaint();
                 });
-                this.readline.clearCompletion();
+                _this.readline.clearCompletion();
                 e.preventDefault();
             }
-            else if (this.input.value == "[") {
-                this.readline.withUndo(() => {
-                    paredit.open(this.readline, "[]");
-                    this.readline.repaint();
+            else if (_this.input.value == "[") {
+                _this.readline.withUndo(function () {
+                    paredit.open(_this.readline, "[]");
+                    _this.readline.repaint();
                 });
-                this.readline.clearCompletion();
+                _this.readline.clearCompletion();
                 e.preventDefault();
             }
-            else if (this.input.value == "{") {
-                this.readline.withUndo(() => {
-                    paredit.open(this.readline, "{}");
-                    this.readline.repaint();
+            else if (_this.input.value == "{") {
+                _this.readline.withUndo(function () {
+                    paredit.open(_this.readline, "{}");
+                    _this.readline.repaint();
                 });
-                this.readline.clearCompletion();
+                _this.readline.clearCompletion();
                 e.preventDefault();
             }
-            else if (this.input.value == "{") {
-                this.readline.withUndo(() => {
-                    paredit.open(this.readline, "{}");
-                    this.readline.repaint();
+            else if (_this.input.value == "{") {
+                _this.readline.withUndo(function () {
+                    paredit.open(_this.readline, "{}");
+                    _this.readline.repaint();
                 });
-                this.readline.clearCompletion();
+                _this.readline.clearCompletion();
                 e.preventDefault();
             }
-            else if (this.input.value == ")") {
-                this.readline.withUndo(() => {
-                    paredit.close(this.readline, ")");
-                    this.readline.repaint();
+            else if (_this.input.value == ")") {
+                _this.readline.withUndo(function () {
+                    paredit.close(_this.readline, ")");
+                    _this.readline.repaint();
                 });
-                this.readline.clearCompletion();
+                _this.readline.clearCompletion();
                 e.preventDefault();
             }
-            else if (this.input.value == "]") {
-                this.readline.withUndo(() => {
-                    paredit.close(this.readline, "]");
-                    this.readline.repaint();
+            else if (_this.input.value == "]") {
+                _this.readline.withUndo(function () {
+                    paredit.close(_this.readline, "]");
+                    _this.readline.repaint();
                 });
-                this.readline.clearCompletion();
+                _this.readline.clearCompletion();
                 e.preventDefault();
             }
-            else if (this.input.value == "}") {
-                this.readline.withUndo(() => {
-                    paredit.close(this.readline, "}");
-                    this.readline.repaint();
+            else if (_this.input.value == "}") {
+                _this.readline.withUndo(function () {
+                    paredit.close(_this.readline, "}");
+                    _this.readline.repaint();
                 });
-                this.readline.clearCompletion();
+                _this.readline.clearCompletion();
                 e.preventDefault();
             }
-            else if (this.input.value == "\n") {
-                if (this.readline.canReturn()) {
-                    this.submitLine();
+            else if (_this.input.value == "\n") {
+                if (_this.readline.canReturn()) {
+                    _this.submitLine();
                 }
                 else {
-                    this.readline.model.undoManager.insertUndoStop();
-                    let indent = getIndent(this.readline, this.readline.selectionEnd);
-                    let istr = "";
-                    for (let i = 0; i < indent; i++)
+                    _this.readline.model.undoManager.insertUndoStop();
+                    var indent = indent_1.getIndent(_this.readline.model, _this.readline.selectionEnd);
+                    var istr = "";
+                    for (var i = 0; i < indent; i++)
                         istr += " ";
-                    this.readline.insertString("\n" + istr);
-                    this.readline.clearCompletion();
+                    _this.readline.insertString("\n" + istr);
+                    _this.readline.clearCompletion();
                 }
             }
             else {
-                this.readline.insertString(this.input.value);
-                this.readline.maybeShowCompletion();
+                _this.readline.insertString(_this.input.value);
+                _this.readline.maybeShowCompletion();
             }
-            this.input.value = "";
+            _this.input.value = "";
             e.preventDefault();
-            this.readline.mainElem.scrollIntoView({ block: "end" });
+            _this.readline.mainElem.scrollIntoView({ block: "end" });
         });
     }
-    addHistoryListener(c) {
+    ReplConsole.prototype.addHistoryListener = function (c) {
         if (this._historyListeners.indexOf(c) == -1)
             this._historyListeners.push(c);
-    }
-    removeHistoryListener(c) {
-        let idx = this._historyListeners.indexOf(c);
+    };
+    ReplConsole.prototype.removeHistoryListener = function (c) {
+        var idx = this._historyListeners.indexOf(c);
         if (idx != -1)
             this._historyListeners.splice(idx, 1);
-    }
-    addCompletionListener(c) {
+    };
+    ReplConsole.prototype.addCompletionListener = function (c) {
         if (this._completionListeners.indexOf(c) == -1)
             this._completionListeners.push(c);
-    }
-    removeCompletionListener(c) {
-        let idx = this._completionListeners.indexOf(c);
+    };
+    ReplConsole.prototype.removeCompletionListener = function (c) {
+        var idx = this._completionListeners.indexOf(c);
         if (idx != -1)
             this._completionListeners.splice(idx, 1);
-    }
-    printElement(element) {
+    };
+    ReplConsole.prototype.printElement = function (element) {
         if (!this.readline || this.input.disabled) {
             this.elem.appendChild(element);
         }
@@ -502,43 +506,47 @@ export class ReplConsole {
             this.elem.insertBefore(element, this.readline.elem);
         }
         this.elem.lastElementChild.scrollIntoView({ block: "end" });
-    }
-    print(text) {
-        let el = document.createElement("div");
+    };
+    ReplConsole.prototype.print = function (text) {
+        var el = document.createElement("div");
         el.textContent = text;
         el.className = "output";
         this.printElement(el);
-    }
-    setText(text) {
+    };
+    ReplConsole.prototype.setText = function (text) {
         this.readline.model.changeRange(0, this.readline.model.maxOffset, text);
         this.readline.repaint();
-    }
-    setHistory(history) {
+    };
+    ReplConsole.prototype.setHistory = function (history) {
         this.history = history;
         this.historyIndex = -1;
-    }
-    submitLine(trigger = true) {
-        let line = this.readline.model.getText(0, this.readline.model.maxOffset);
+    };
+    ReplConsole.prototype.submitLine = function (trigger) {
+        if (trigger === void 0) { trigger = true; }
+        var line = this.readline.model.getText(0, this.readline.model.maxOffset);
         if (line.trim() == "") {
             this.readline.freeze();
             this.requestPrompt(this.readline.promptElem.textContent);
             return;
         }
         this.history.push(line);
-        this._historyListeners.forEach(x => x(line));
+        this._historyListeners.forEach(function (x) { return x(line); });
         this.historyIndex = -1;
         this.readline.freeze();
         if (trigger)
             this.onReadLine(line);
-    }
-    requestPrompt(prompt) {
+    };
+    ReplConsole.prototype.requestPrompt = function (prompt) {
+        var _this = this;
         if (this.readline && !this.input.disabled)
             return;
-        this.readline = new ReplReadline(this.elem, prompt, this.input);
-        this.readline.addCompletionListener(e => this._completionListeners.forEach(listener => listener(e)));
+        this.readline = new readline_1.ReplReadline(this.elem, prompt, this.input);
+        this.readline.addCompletionListener(function (e) { return _this._completionListeners.forEach(function (listener) { return listener(e); }); });
         this.elem.appendChild(this.input);
         this.input.disabled = false;
         this.input.focus();
         this.readline.mainElem.scrollIntoView({ block: "end" });
-    }
-}
+    };
+    return ReplConsole;
+}());
+exports.ReplConsole = ReplConsole;
