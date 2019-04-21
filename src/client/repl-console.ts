@@ -50,6 +50,7 @@ const defaultHotkeys = new HotKeyTable<ReplConsole>({
     "Alt+S": "splice-sexp",
     "Alt+UpArrow": "history-up",
     "Alt+DownArrow": "history-down",
+    "Alt+Return": "submit",
 })
 
 
@@ -146,7 +147,7 @@ export class ReplConsole {
                         break;
                     case 13:
                         if(this.readline.canReturn()) {
-                            this.submitLine()
+                            this.submitLine();
                             this.readline.clearCompletion();
                         } else {
                             this.readline.model.undoManager.insertUndoStop();
@@ -553,6 +554,10 @@ export class ReplConsole {
                 this.readline.selectionStart = this.readline.selectionEnd = line.length;
             })
             this.readline.repaint();
+        },
+        "submit": () => {
+            this.submitLine()
+            this.readline.clearCompletion();
         }
     }
 }
