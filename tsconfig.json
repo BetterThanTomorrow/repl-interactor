@@ -2,7 +2,10 @@
     "compilerOptions": {
         "moduleResolution": "node",
         "target": "es5",
-        "lib": ["es2016", "dom"],
+        "lib": [
+            "es2016",
+            "dom"
+        ],
         "jsx": "react",
         "downlevelIteration": true,
         "experimentalDecorators": true,
