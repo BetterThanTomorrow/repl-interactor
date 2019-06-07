@@ -54,6 +54,7 @@ const defaultHotkeys = new HotKeyTable<ReplConsole>({
 })
 
 
+
 export class ReplConsole {
     readline: ReplReadline;
     input: HTMLInputElement;
@@ -65,6 +66,23 @@ export class ReplConsole {
     /** Event listeners for history */
     private _historyListeners: ((line: string) => void)[] = [];
 
+    private isElementInViewport(el) {
+        var rect = el.getBoundingClientRect();
+        return (
+            rect.top >= 0 &&
+            rect.left >= 0 &&
+            rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) && /*or $(window).height() */
+            rect.right <= (window.innerWidth || document.documentElement.clientWidth) /*or $(window).width() */
+        );
+    }
+    
+    private ensureCaretInView() {
+        const el = this.readline.caret;
+        if (!this.isElementInViewport(el)) {
+            el.scrollIntoView({ block: "nearest" });
+        }
+    }
+    
     addHistoryListener(c: (line: string) => void) {
         if(this._historyListeners.indexOf(c) == -1)
             this._historyListeners.push(c);
@@ -112,6 +130,7 @@ export class ReplConsole {
                 e.clipboardData.setData("text/plain", this.readline.model.getText(this.readline.selectionStart, this.readline.selectionEnd));
                 this.readline.delete();
                 e.preventDefault();
+                this.ensureCaretInView();
             }
         })
         
@@ -128,13 +147,14 @@ export class ReplConsole {
                 this.readline.model.undoManager.insertUndoStop()
                 this.readline.insertString(e.clipboardData.getData("text/plain"));
                 e.preventDefault();
+                this.ensureCaretInView();
             }
         })
 
         this.input.addEventListener("keydown", e => {
             if(this.hotkeys.execute(this, e)) {
                 e.preventDefault();
-                this.readline.mainElem.scrollIntoView({ block: "end"})
+                this.ensureCaretInView();
                 return;
             }
             if(e.key.length == 1 && !e.metaKey && !e.ctrlKey) {
@@ -149,6 +169,7 @@ export class ReplConsole {
                         if(this.readline.canReturn()) {
                             this.submitLine();
                             this.readline.clearCompletion();
+                            window.scrollTo({ left: 0 });
                         } else {
                             this.readline.model.undoManager.insertUndoStop();
                             let indent = getIndent(this.readline.model, this.readline.selectionEnd);
@@ -160,7 +181,6 @@ export class ReplConsole {
                         break;
                 }
             }
-            this.readline.mainElem.scrollIntoView({ block: "end"})
         },  { capture: true })
 
         this.input.addEventListener("input", e => {
@@ -225,6 +245,7 @@ export class ReplConsole {
             } else if(this.input.value == "\n") {
                 if(this.readline.canReturn()) {
                     this.submitLine();
+                    this.readline.mainElem.scrollIntoView({ block: "end" });
                 } else {
                     this.readline.model.undoManager.insertUndoStop();
                     let indent = getIndent(this.readline.model, this.readline.selectionEnd);
@@ -240,7 +261,7 @@ export class ReplConsole {
             }
             this.input.value = ""
             e.preventDefault();
-            this.readline.mainElem.scrollIntoView({ block: "end"})
+            this.ensureCaretInView();
         })
     }
 
