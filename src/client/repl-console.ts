@@ -51,6 +51,7 @@ const defaultHotkeys = new HotKeyTable<ReplConsole>({
     "Alt+UpArrow": "history-up",
     "Alt+DownArrow": "history-down",
     "Alt+Return": "submit",
+    "Ctrl+Return": "submit-pprint"
 })
 
 
@@ -108,7 +109,7 @@ export class ReplConsole {
             this._completionListeners.splice(idx, 1);
     }
 
-    constructor(public elem: HTMLElement, public onReadLine: (x: string) => void = () => {}) {
+    constructor(public elem: HTMLElement, public onReadLine: (x: string, pprint: boolean) => void = () => {}) {
         this.hotkeys = defaultHotkeys;
         this.input = document.createElement("input");
         this.input.style.width = "0px";
@@ -291,7 +292,7 @@ export class ReplConsole {
         this.historyIndex = -1;
     }
 
-    submitLine(trigger = true) {
+    submitLine(trigger = true, pprint = false) {
         let line = this.readline.model.getText(0, this.readline.model.maxOffset);
         if(line.trim() == "") {
             this.readline.freeze();
@@ -303,7 +304,7 @@ export class ReplConsole {
         this.historyIndex = -1;
         this.readline.freeze();
         if(trigger)
-            this.onReadLine(line);
+            this.onReadLine(line, pprint);
     }
 
     requestPrompt(prompt: string) {
@@ -577,7 +578,11 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "submit": () => {
-            this.submitLine()
+            this.submitLine(true, false)
+            this.readline.clearCompletion();
+        },
+        "submit-pprint": () => {
+            this.submitLine(true, true)
             this.readline.clearCompletion();
         }
     }
