@@ -51,7 +51,8 @@ const defaultHotkeys = new HotKeyTable<ReplConsole>({
     "Alt+UpArrow": "history-up",
     "Alt+DownArrow": "history-down",
     "Alt+Return": "submit",
-    "Ctrl+Return": "submit-pprint"
+    "Ctrl+Return": "submit-pprint",
+    "Ctrl+L": "clear-window"
 })
 
 
@@ -584,6 +585,14 @@ export class ReplConsole {
         "submit-pprint": () => {
             this.submitLine(true, true)
             this.readline.clearCompletion();
+        },
+        "clear-window": () => {
+            // TODO: How to add undo to this?
+            const prompt = this.readline.promptElem.textContent;
+            const replElement = window.document.getElementById('repl');
+            replElement.textContent = "";
+            this.readline = null;
+            this.requestPrompt(prompt);
         }
     }
 }
