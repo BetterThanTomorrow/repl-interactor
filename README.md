@@ -1,4 +1,10 @@
-# Prototype REPL interface for Calva.
+# This repo is archived for now
+
+As we do not have the ability to maintain and pursue the goals of this project we have moved the code into the [Calva](https://github.com/BetterThanTomorrow/calva) repository for now.
+
+
+Below is the old description. For anyone wondering what the goals of the project might have been.
+
 
 ## Description
 
